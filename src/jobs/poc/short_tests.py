@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
 
-print("El u es pato")
-print("y se toketea a domicilio")
+df=pd.read_csv('Data.csv')
+
+print(df)
