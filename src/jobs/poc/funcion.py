@@ -1,4 +1,1 @@
-
-
-
-#moda = df["serial_number"].mode()
+# moda = df["serial_number"].mode()
