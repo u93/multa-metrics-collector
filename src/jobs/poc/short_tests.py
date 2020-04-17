@@ -39,3 +39,5 @@ print(cant2['status'])
 print(str(round(cant['status']/(cant['status']+cant2['status'])*100,2)) + str(' %'))
 
 print(cantidad_fotos)
+
+topo = 6
