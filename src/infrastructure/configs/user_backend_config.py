@@ -91,7 +91,7 @@ USER_BACKEND_CONFIGS = {
                 "app_client": {
                     "enabled": True,
                     "client_name": "users",
-                    "generate_secret": True,
+                    "generate_secret": False,
                     "auth_flows": {
                         "custom": True,
                         "refresh_token": True,
