@@ -1,5 +1,3 @@
-
-
 ANALYTICS_SIMPLE_PIPELINE_CONFIGURATION = {
     "analytics_resource_name": "collector_pipe",
     "iot_rule": {

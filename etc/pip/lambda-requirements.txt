@@ -1,2 +1,4 @@
+jose==1.0.0
 marshmallow==3.5.1
+pynamodb==4.3.2
 requests==2.23.0

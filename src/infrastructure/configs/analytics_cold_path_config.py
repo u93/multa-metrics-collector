@@ -9,9 +9,7 @@ ANALYTICS_COLD_PATH_CONFIGS = {
         "ANALYTICS_FAN_OUT_SSM": {
             "name": "analytics_fan_out_cold_parameters",
             "description": "Parameters used by Analytics Fan Out API functions and resources.",
-            "string_value": {
-                "TEST": True
-            }
+            "string_value": {"TEST": True},
         },
         "ANALYTICS_FAN_OUT_API": {
             "functions": [
@@ -24,7 +22,7 @@ ANALYTICS_COLD_PATH_CONFIGS = {
                     "layers": [],
                     "timeout": 10,
                     "environment_vars": {"ENVIRONMENT": "dev"},
-                    "iam_actions": ["*"]
+                    "iam_actions": ["*"],
                 },
                 {
                     "lambda_name": "analytics_cold_cpu_handler",
@@ -35,7 +33,7 @@ ANALYTICS_COLD_PATH_CONFIGS = {
                     "layers": [],
                     "timeout": 10,
                     "environment_vars": {"ENVIRONMENT": "dev"},
-                    "iam_actions": ["*"]
+                    "iam_actions": ["*"],
                 },
                 {
                     "lambda_name": "analytics_cold_hdd_handler",
@@ -46,7 +44,7 @@ ANALYTICS_COLD_PATH_CONFIGS = {
                     "layers": [],
                     "timeout": 10,
                     "environment_vars": {"ENVIRONMENT": "dev"},
-                    "iam_actions": ["*"]
+                    "iam_actions": ["*"],
                 },
                 {
                     "lambda_name": "analytics_cold_connectivity_handler",
@@ -57,7 +55,7 @@ ANALYTICS_COLD_PATH_CONFIGS = {
                     "layers": [],
                     "timeout": 10,
                     "environment_vars": {"ENVIRONMENT": "dev"},
-                    "iam_actions": ["*"]
+                    "iam_actions": ["*"],
                 },
             ],
             "api": {
@@ -65,10 +63,7 @@ ANALYTICS_COLD_PATH_CONFIGS = {
                 "apigateway_description": "Entry point for the ANALYTICS FAN OUT API",
                 "proxy": False,
                 "authorizer_function": {
-                    "imported": {
-                        "identifier": "analytics_cold_fan_out_api_authorizer_function",
-                        "arn": "DYNAMIC"
-                    }
+                    "imported": {"identifier": "analytics_cold_fan_out_api_authorizer_function", "arn": "DYNAMIC"}
                 },
                 "root_resource": {
                     "name": "analytics-cold",
@@ -83,10 +78,10 @@ ANALYTICS_COLD_PATH_CONFIGS = {
                         "layers": [],
                         "timeout": 10,
                         "environment_vars": {"ENVIRONMENT": "dev"},
-                        "iam_actions": ["*"]
+                        "iam_actions": ["*"],
                     },
-                }
-            }
+                },
+            },
         },
     },
     # "demo": {},

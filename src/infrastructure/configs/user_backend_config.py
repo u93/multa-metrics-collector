@@ -9,10 +9,11 @@ USER_BACKEND_CONFIGS = {
         "USER_BACKEND_SSM": {
             "name": "user_backend_parameters",
             "description": "Parameters used by User Backend functions and resources.",
-            "string_value": {
-                "TEST": True
-            }
+            "string_value": {"TEST": True},
         },
+        "USER_BACKEND_BUCKETS": [
+            {"bucket_name": "backend-static-data", "versioned": False, "public_read_access": False}
+        ],
         "USER_BACKEND": {
             "authorizer_function": {
                 "origin": {
@@ -24,42 +25,34 @@ USER_BACKEND_CONFIGS = {
                     "layers": [],
                     "timeout": 10,
                     "environment_vars": {"ENVIRONMENT": "dev"},
-                    "iam_actions": ["*"]
+                    "iam_actions": ["*"],
                 }
             },
             "dynamo_tables": [
                 {
                     "table_name": "organizations",
                     "partition_key": "id",
-                    "stream": {
-                        "enabled": False,
-                    },
-                    "billing_mode": "pay_per_request"
+                    "stream": {"enabled": False,},
+                    "billing_mode": "pay_per_request",
                 },
                 {
                     "table_name": "user_settings",
                     "partition_key": "id",
-                    "stream": {
-                        "enabled": False,
-                    },
-                    "billing_mode": "pay_per_request"
+                    "stream": {"enabled": False,},
+                    "billing_mode": "pay_per_request",
                 },
                 {
                     "table_name": "user_roles",
                     "partition_key": "id",
-                    "stream": {
-                        "enabled": False,
-                    },
-                    "billing_mode": "pay_per_request"
+                    "stream": {"enabled": False,},
+                    "billing_mode": "pay_per_request",
                 },
                 {
                     "table_name": "account_plans",
                     "partition_key": "id",
-                    "stream": {
-                        "enabled": False,
-                    },
-                    "billing_mode": "pay_per_request"
-                }
+                    "stream": {"enabled": False,},
+                    "billing_mode": "pay_per_request",
+                },
             ],
             "user_pool": {
                 "pool_name": "users",
@@ -92,11 +85,7 @@ USER_BACKEND_CONFIGS = {
                     "enabled": True,
                     "client_name": "users",
                     "generate_secret": False,
-                    "auth_flows": {
-                        "custom": True,
-                        "refresh_token": True,
-                        "user_srp": True
-                    }
+                    "auth_flows": {"custom": True, "refresh_token": True, "user_srp": True},
                 },
                 "triggers": {
                     "post_confirmation": {
@@ -108,11 +97,11 @@ USER_BACKEND_CONFIGS = {
                         "layers": [],
                         "timeout": 10,
                         "environment_vars": {"ENVIRONMENT": "dev"},
-                        "iam_actions": ["*"]
+                        "iam_actions": ["*"],
                     }
                 },
-            }
-        }
+            },
+        },
     },
     # "demo": {
     #
@@ -121,4 +110,3 @@ USER_BACKEND_CONFIGS = {
     #
     # }
 }
-

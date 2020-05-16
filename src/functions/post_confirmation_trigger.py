@@ -8,4 +8,4 @@ def lambda_handler(event, context):
     print(os.environ)
     print(event)
 
-    return {"time": activation_time, "status": 200}
+    return event

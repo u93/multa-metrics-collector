@@ -136,18 +136,18 @@ class AuthPolicy(object):
             resource = resource[1:]
 
         resource_arn = (
-                "arn:aws:execute-api:"
-                + self.region
-                + ":"
-                + self.aws_account_id
-                + ":"
-                + self.rest_api_id
-                + "/"
-                + self.stage
-                + "/"
-                + verb
-                + "/"
-                + resource
+            "arn:aws:execute-api:"
+            + self.region
+            + ":"
+            + self.aws_account_id
+            + ":"
+            + self.rest_api_id
+            + "/"
+            + self.stage
+            + "/"
+            + verb
+            + "/"
+            + resource
         )
 
         if effect.lower() == "allow":
@@ -236,7 +236,7 @@ class AuthPolicy(object):
         one statement for Allow and one statement for Deny.
         Methods that includes conditions will have their own statement in the policy."""
         if (self.allow_methods is None or len(self.allow_methods) == 0) and (
-                self.deny_methods is None or len(self.deny_methods) == 0
+            self.deny_methods is None or len(self.deny_methods) == 0
         ):
             raise NameError("No statements defined for the policy")
 

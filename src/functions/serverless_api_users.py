@@ -36,14 +36,14 @@ def lambda_handler(event, context):
                 "name": "Eugenio Efrain",
                 "familyName": "Breijo",
                 "email": "eb+test@gmail.com",
-                "phoneNumber": "+17864534511"
+                "phoneNumber": "+17864534511",
             },
             {
                 "name": "Diago Ernesto",
                 "familyName": "Estrada",
                 "email": "de+test@gmail.com",
-                "phoneNumber": "+17864534512"
-            }
+                "phoneNumber": "+17864534512",
+            },
         ]
     }
 
