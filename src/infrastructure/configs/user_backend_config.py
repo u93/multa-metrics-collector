@@ -11,9 +11,6 @@ USER_BACKEND_CONFIGS = {
             "description": "Parameters used by User Backend functions and resources.",
             "string_value": {"TEST": True},
         },
-        "USER_BACKEND_BUCKETS": [
-            {"bucket_name": "backend-static-data", "versioned": False, "public_read_access": False}
-        ],
         "USER_BACKEND": {
             "authorizer_function": {
                 "origin": {

@@ -11,6 +11,11 @@ BASE_CONFIGS = {
             "description": "Parameters used by Base Backend functions and resources.",
             "string_value": {"TEST": True},
         },
+        "BASE_CONFIG_BUCKETS": {
+            "buckets": [
+                {"bucket_name": "backend-static-data", "versioned": False, "public_read_access": False}
+            ],
+        },
         "BASE_CONFIG_FUNCTIONS": {
             "functions": [
                 {

@@ -53,6 +53,14 @@ class BaseStack(core.Stack):
             configuration=config["config"]["BASE_CONFIG_FUNCTIONS"],
         )
 
+        self._base_backend_buckets = AwsS3BucketsCluster(
+            self,
+            id=f"BaseBackend-Buckets-{config['environ']}",
+            prefix="multa-backend",
+            environment=config["environ"],
+            configuration=config["config"]["BASE_CONFIG_BUCKETS"],
+        )
+
 
 class UserBackendStack(core.Stack):
     """
@@ -61,14 +69,6 @@ class UserBackendStack(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, config=None, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
-
-        self._user_backend_buckets = AwsS3BucketsCluster(
-            self,
-            id=f"UserServerlessBE-Buckets-{config['environ']}",
-            prefix="multa_backend",
-            environment=config["environ"],
-            configuration=config["config"]["USER_BACKEND_BUCKETS"],
-        )
 
         self._user_serverless_backend_lambdalayer = AwsLambdaLayerVenv(
             self,
