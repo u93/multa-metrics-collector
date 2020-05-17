@@ -169,9 +169,6 @@ for environment, configuration in serverless_rest_api_configs.SERVERLESS_REST_AP
     UserApisBackend(app, id=f"UserApisBackend-{environment}", config=config)
 
 for environment, configuration in analytics_cold_path_config.ANALYTICS_COLD_PATH_CONFIGS.items():
-    configuration["ANALYTICS_FAN_OUT_API"]["api"]["authorizer_function"]["imported"]["arn"] = lambda_authorizers[
-        environment
-    ]
     config = dict(environ=environment, config=configuration)
     AnalyticsColdPathStack(app, id=f"AnalyticsColdPathStack-{environment}", config=config)
 

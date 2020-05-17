@@ -23,19 +23,27 @@ class Plans(Model):
     class Meta:
         table_name = PLANS_TABLE_NAME
 
-    id = UnicodeAttribute(hash_key=True, null=False, default_for_new=uuid.uuid4())
-    name = UnicodeAttribute(null=False)
+    id = UnicodeAttribute(hash_key=True, null=False, default_for_new=str(uuid.uuid4()))
+    name = UnicodeAttribute(null=False, )
     conditions = ListAttribute(null=False)
     last_updated = NumberAttribute(default_for_new=round(time.time()))
 
     @classmethod
-    def create(cls, name: str, conditions: list):
+    def create(cls, name: str, conditions: list, id_=None):
+        """
+        Can be used to create as well to update (if record ID is passed).
+        :param name: Plan Name
+        :param conditions: Plan conditions that will be shown in the UI
+        :param id_: Element ID in DynamoDB
+        :return: Class Instance
+        """
         cls.validate_table()
+        # TODO: ADD BY NAME VALIDATION (UNIQUE NAME)
         try:
-            if not cls.exists():
-                logger.error(f"Table {PLANS_TABLE_NAME} does not exists!")
-                raise Exception
-            plan = cls(name=name, conditions=conditions, last_updated=round(time.time()))
+            if id_ is not None:
+                plan = cls(id=id_, name=name, conditions=conditions, last_updated=round(time.time()))
+            else:
+                plan = cls(name=name, conditions=conditions, last_updated=round(time.time()))
             plan.save()
         except Exception:
             logger.error("Error SAVING new PLAN")
@@ -45,10 +53,22 @@ class Plans(Model):
             return plan
 
     @classmethod
-    def get_record(cls, id_: str):
+    def get_record_by_id(cls, id_: str):
         cls.validate_table()
         try:
             plan = cls.query(hash_key=id_)
+        except Exception:
+            logger.error("Error QUERYING individual PLANs")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return plan
+
+    @classmethod
+    def get_record_by_name(cls, name: str):
+        cls.validate_table()
+        try:
+            plan = cls.query()
         except Exception:
             logger.error("Error QUERYING individual PLANs")
             logger.error(traceback.format_exc())
@@ -61,7 +81,7 @@ class Plans(Model):
         cls.validate_table()
         try:
             plans = cls.scan(consistent_read=True, page_size=MAX_SIZE_PER_PAGE)
-            plans_total = cls.count()
+            plans_total = plans.total_count  # TODO: TOTAL RECORDS IS NOT WORKING
         except Exception:
             logger.error("Error SCANNING all PLANs")
             logger.error(traceback.format_exc())
@@ -69,18 +89,23 @@ class Plans(Model):
         else:
             return plans, plans_total
 
-    @classmethod
-    def update_record(cls):
-        cls.validate_table()
+    def update_record(self, **kwargs):
+        self.validate_table()
         try:
-            plans = cls.update()
-            plans_total = cls.count()
+            action_list = list()
+            for attr, value in kwargs.items():
+                action = getattr(self, attr, None)
+                if action is None:
+                    continue
+                else:
+                    action.set(value)
+            latest_plan = self.update(actions=action_list)
         except Exception:
-            logger.error("Error SCANNING all PLANs")
+            logger.error("Error UPDATING PLAN record")
             logger.error(traceback.format_exc())
             return False
         else:
-            return plans, plans_total
+            return latest_plan
 
     def to_dict(self):
         return dict(id=self.id, name=self.name, conditions=self.conditions, lastUpdated=self.last_updated)

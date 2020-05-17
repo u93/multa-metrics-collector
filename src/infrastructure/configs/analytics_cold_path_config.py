@@ -59,29 +59,57 @@ ANALYTICS_COLD_PATH_CONFIGS = {
                 },
             ],
             "api": {
-                "apigateway_name": "analytics_cold_fan_out_api",
-                "apigateway_description": "Entry point for the ANALYTICS FAN OUT API",
-                "proxy": False,
+                "apigateway_name": "serverless_analytics_api",
+                "apigateway_description": "Serverless Analytics Backend API for Frontend interaction.",
                 "authorizer_function": {
-                    "imported": {"identifier": "analytics_cold_fan_out_api_authorizer_function", "arn": "DYNAMIC"}
-                },
-                "root_resource": {
-                    "name": "analytics-cold",
-                    "allowed_origins": ["*"],
-                    "methods": ["GET"],
-                    "handler": {
-                        "lambda_name": "analytics_cold_router_handler",
-                        "description": "Lambda Function that will handle Routing logic for Cold Analytics.",
+                    "origin": {
+                        "lambda_name": "serverless_analytics_authorizer",
+                        "description": "Lambda Function that will Authorize request made by API Gateway in the project.",
                         "code_path": "./src/functions/",
                         "runtime": "PYTHON_3_7",
-                        "handler": "analytics_router_cold.lambda_handler",
+                        "handler": "authorizer.lambda_handler",
+                        "layers": [],
+                        "timeout": 10,
+                        "environment_vars": {"ENVIRONMENT": "dev"},
+                        "iam_actions": ["*"],
+                    }
+                },
+                "settings": {
+                    "proxy": False,
+                    "default_cors_options": {"allow_origins": ["*"], "options_status_code": 200},
+                    "default_http_methods": ["ANY"],
+                    "default_stage_options": {
+                        "metrics_enabled": True,
+                        "logging_level": "INFO"
+                    },
+                    "default_handler": {
+                        "lambda_name": "serverless_analytics_cold_default_handler",
+                        "description": "Lambda Function that will handle defaulted requests to Serverless Analytics API.",
+                        "code_path": "./src/functions/",
+                        "runtime": "PYTHON_3_7",
+                        "handler": "serverless_analytics_router_cold.lambda_handler",
                         "layers": [],
                         "timeout": 10,
                         "environment_vars": {"ENVIRONMENT": "dev"},
                         "iam_actions": ["*"],
                     },
                 },
-            },
+                "resource": {
+                    "resource_name": "cold",
+                    "methods": ["GET", "POST"],
+                    "handler": {
+                        "lambda_name": "serverless_analytics_router_cold_handler",
+                        "description": "Lambda Function that will handle COLD requests to Serverless Analytics API.",
+                        "code_path": "./src/functions/",
+                        "runtime": "PYTHON_3_7",
+                        "handler": "serverless_analytics_router_cold.lambda_handler",
+                        "layers": [],
+                        "timeout": 10,
+                        "environment_vars": {"ENVIRONMENT": "dev"},
+                        "iam_actions": ["*"],
+                    },
+                }
+            }
         },
     },
     # "demo": {},

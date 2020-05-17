@@ -50,6 +50,12 @@ USER_BACKEND_CONFIGS = {
                     "stream": {"enabled": False,},
                     "billing_mode": "pay_per_request",
                 },
+                {
+                    "table_name": "service_tokens",
+                    "partition_key": "id",
+                    "stream": {"enabled": False, },
+                    "billing_mode": "pay_per_request",
+                },
             ],
             "user_pool": {
                 "pool_name": "users",
@@ -72,9 +78,9 @@ USER_BACKEND_CONFIGS = {
                 "invitation": {
                     "email": {
                         "subject": "Multa User Pool - Invitation",
-                        "body": "Multa - Your username is {username} and temporary password is {####}. ",
+                        "body": "Multa - Your username is {username} and temporary password is {####}.",
                     },
-                    "sms": {"body": "Multa - Your username is {username} and temporary password is {####}. "},
+                    "sms": {"body": "Multa - Your username is {username} and temporary password is {####}."},
                 },
                 "sign_in": {"order": ["email"]},
                 "attributes": {"standard": ["email", "given_name", "family_name", "phone_number", "last_update_time"]},

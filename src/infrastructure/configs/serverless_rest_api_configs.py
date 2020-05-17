@@ -22,6 +22,10 @@ SERVERLESS_REST_API_CONFIGS = {
                     "proxy": False,
                     "default_cors_options": {"allow_origins": ["*"], "options_status_code": 200},
                     "default_http_methods": ["GET"],
+                    "default_stage_options": {
+                        "metrics_enabled": True,
+                        "logging_level": "INFO"
+                    },
                     "default_handler": {
                         "lambda_name": "serverless_api_default_handler",
                         "description": "Lambda Function that will handle defaulted requests to Serverless API.",
@@ -63,23 +67,23 @@ SERVERLESS_REST_API_CONFIGS = {
                                 "environment_vars": {"ENVIRONMENT": "dev"},
                                 "iam_actions": ["*"],
                             },
-                            "childs": [
-                                {
-                                    "resource_name": "share",
-                                    "methods": ["GET", "POST", "PUT", "DELETE"],
-                                    "handler": {
-                                        "lambda_name": "serverless_api_users_specific_handler",
-                                        "description": "Lambda Function that will handle User-related requests to Serverless API.",
-                                        "code_path": "./src/functions/",
-                                        "runtime": "PYTHON_3_7",
-                                        "handler": "serverless_api_users.lambda_handler",
-                                        "layers": [],
-                                        "timeout": 10,
-                                        "environment_vars": {"ENVIRONMENT": "dev"},
-                                        "iam_actions": ["*"],
-                                    },
-                                }
-                            ],
+                            # "childs": [
+                            #     {
+                            #         "resource_name": "share",
+                            #         "methods": ["GET", "POST", "PUT", "DELETE"],
+                            #         "handler": {
+                            #             "lambda_name": "serverless_api_users_specific_handler",
+                            #             "description": "Lambda Function that will handle User-related requests to Serverless API.",
+                            #             "code_path": "./src/functions/",
+                            #             "runtime": "PYTHON_3_7",
+                            #             "handler": "serverless_api_users.lambda_handler",
+                            #             "layers": [],
+                            #             "timeout": 10,
+                            #             "environment_vars": {"ENVIRONMENT": "dev"},
+                            #             "iam_actions": ["*"],
+                            #         },
+                            #     }
+                            # ],
                         },
                     },
                     {
