@@ -1,0 +1,62 @@
+{
+  "plans": {
+    "values": [
+      {
+        "id": "3367dfd3-4909-4117-a434-379b66e71d18##Basic",
+        "name": "Starter",
+        "conditions": {
+          "numberOfAgents": "Up to 2 agents",
+          "numberOfQueries": 2,
+          "maximumDataStorageDays": 15,
+          "numberOfUsers": 1
+        },
+        "price": {
+          "monthly": "$0/month",
+          "yearly": "$0/year"
+        }
+      },
+      {
+        "id": "d4b4e94e-5479-420e-ae2a-d4b4f54a82d5##Starter",
+        "name": "Basic",
+        "conditions": {
+          "numberOfAgents": "Up to 5 agents",
+          "numberOfQueries": 5,
+          "maximumDataStorageDays": 30,
+          "numberOfUsers": 3
+        },
+        "price": {
+          "monthly": "$30/month",
+          "yearly": "$300/year"
+        }
+      },
+      {
+        "id": "56eb846b-789b-4b67-b532-9de2f9462054##Professional",
+        "name": "Professional",
+        "conditions": {
+          "numberOfAgents": "Up to 15 agents",
+          "numberOfQueries": 15,
+          "maximumDataStorageDays": 90,
+          "numberOfUsers": 5
+        },
+        "price": {
+          "monthly": "$100/month",
+          "yearly": "$1000/year"
+        }
+      },
+      {
+        "id": "e1fc6789-2158-4b59-a599-7df97aea52ca##Enterprise",
+        "name": "Enterprise",
+        "conditions": {
+          "numberOfAgents": "Unlimited agents",
+          "numberOfQueries": 30,
+          "maximumDataStorageDays": 365,
+          "numberOfUsers": 10
+        },
+        "price": {
+          "monthly": "$300/month",
+          "yearly": "$3000/year"
+        }
+      }
+    ]
+  }
+}

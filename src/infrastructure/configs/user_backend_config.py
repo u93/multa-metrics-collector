@@ -9,9 +9,7 @@ USER_BACKEND_CONFIGS = {
         "USER_BACKEND_SSM": {
             "name": "user_backend_parameters",
             "description": "Parameters used by User Backend functions and resources.",
-            "string_value": {
-                "TEST": True
-            }
+            "string_value": {"TEST": True},
         },
         "USER_BACKEND": {
             "authorizer_function": {
@@ -24,42 +22,40 @@ USER_BACKEND_CONFIGS = {
                     "layers": [],
                     "timeout": 10,
                     "environment_vars": {"ENVIRONMENT": "dev"},
-                    "iam_actions": ["*"]
+                    "iam_actions": ["*"],
                 }
             },
             "dynamo_tables": [
                 {
                     "table_name": "organizations",
                     "partition_key": "id",
-                    "stream": {
-                        "enabled": False,
-                    },
-                    "billing_mode": "pay_per_request"
+                    "stream": {"enabled": False,},
+                    "billing_mode": "pay_per_request",
                 },
                 {
                     "table_name": "user_settings",
                     "partition_key": "id",
-                    "stream": {
-                        "enabled": False,
-                    },
-                    "billing_mode": "pay_per_request"
+                    "stream": {"enabled": False,},
+                    "billing_mode": "pay_per_request",
                 },
                 {
                     "table_name": "user_roles",
                     "partition_key": "id",
-                    "stream": {
-                        "enabled": False,
-                    },
-                    "billing_mode": "pay_per_request"
+                    "stream": {"enabled": False,},
+                    "billing_mode": "pay_per_request",
                 },
                 {
                     "table_name": "account_plans",
                     "partition_key": "id",
-                    "stream": {
-                        "enabled": False,
-                    },
-                    "billing_mode": "pay_per_request"
-                }
+                    "stream": {"enabled": False,},
+                    "billing_mode": "pay_per_request",
+                },
+                {
+                    "table_name": "service_tokens",
+                    "partition_key": "id",
+                    "stream": {"enabled": False, },
+                    "billing_mode": "pay_per_request",
+                },
             ],
             "user_pool": {
                 "pool_name": "users",
@@ -82,9 +78,9 @@ USER_BACKEND_CONFIGS = {
                 "invitation": {
                     "email": {
                         "subject": "Multa User Pool - Invitation",
-                        "body": "Multa - Your username is {username} and temporary password is {####}. ",
+                        "body": "Multa - Your username is {username} and temporary password is {####}.",
                     },
-                    "sms": {"body": "Multa - Your username is {username} and temporary password is {####}. "},
+                    "sms": {"body": "Multa - Your username is {username} and temporary password is {####}."},
                 },
                 "sign_in": {"order": ["email"]},
                 "attributes": {"standard": ["email", "given_name", "family_name", "phone_number", "last_update_time"]},
@@ -92,11 +88,7 @@ USER_BACKEND_CONFIGS = {
                     "enabled": True,
                     "client_name": "users",
                     "generate_secret": False,
-                    "auth_flows": {
-                        "custom": True,
-                        "refresh_token": True,
-                        "user_srp": True
-                    }
+                    "auth_flows": {"custom": True, "refresh_token": True, "user_srp": True},
                 },
                 "triggers": {
                     "post_confirmation": {
@@ -108,11 +100,11 @@ USER_BACKEND_CONFIGS = {
                         "layers": [],
                         "timeout": 10,
                         "environment_vars": {"ENVIRONMENT": "dev"},
-                        "iam_actions": ["*"]
+                        "iam_actions": ["*"],
                     }
                 },
-            }
-        }
+            },
+        },
     },
     # "demo": {
     #
@@ -121,4 +113,3 @@ USER_BACKEND_CONFIGS = {
     #
     # }
 }
-
