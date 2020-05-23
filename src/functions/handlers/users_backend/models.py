@@ -136,6 +136,7 @@ class Plans(Model):
     def to_dict(self):
         return dict(
             id=self.id,
+            name=self.id.split("##")[1],
             conditions=self.conditions.as_dict(),
             price=self.price.as_dict(),
             lastUpdated=self.last_updated
