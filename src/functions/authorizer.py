@@ -1,5 +1,6 @@
 import re
 
+from handlers.users_backend.models import ServiceTokens
 from handlers.utils import base_response
 
 from settings.logs import Logger
@@ -12,6 +13,9 @@ def lambda_handler(event, context):
     logger.info(event)
     logger.info("Client token: " + event["authorizationToken"])
     logger.info("Method ARN: " + event["methodArn"])
+
+    token_value = event["authorizationToken"].split(" ")[1]
+    invoked_api_gateway_method = event["methodArn"]
     """
     Validate the incoming token and produce the principal user 
     identifier associated with the token this could be accomplished 
@@ -47,7 +51,17 @@ def lambda_handler(event, context):
     policy.rest_api_id = api_gateway_arn_tmp[0]
     policy.region = tmp[3]
     policy.stage = api_gateway_arn_tmp[1]
-    policy.allow_all_methods()
+
+    # ADD SERVICE TOKEN VALIDATION
+    system_service_tokens, total_service_tokens, last_evaluated_key = ServiceTokens.get_records()
+    current_service_tokens = ServiceTokens.records_to_dict(system_service_tokens)
+    current_service_tokens_values = [current_service_token["value"] for current_service_token in current_service_tokens]
+    if token_value in current_service_tokens_values:
+        logger.info(f"Allowing all methods for {token_value}")
+        policy.allow_all_methods()
+    else:
+        logger.error(f"Denying all methods for {token_value}")
+        policy.deny_all_methods()
 
     """
     policy.allowMethod(HttpVerb.GET, "/pets/*")
@@ -253,3 +267,13 @@ class AuthPolicy(object):
         policy["policyDocument"]["Statement"].extend(self._get_statement_for_effect("Deny", self.deny_methods))
 
         return policy
+
+
+if __name__ == "__main__":
+    lambda_handler(
+        event=dict(
+            authorizationToken="Token c9ddf192612858106b70409893dd1795",
+            methodArn="arn:aws:execute-api:us-east-1:112646120612:2qoob0tpqb/prod/GET/plans/"
+        ),
+        context={}
+    )
