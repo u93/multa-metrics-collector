@@ -1,4 +1,8 @@
 jose==1.0.0
 marshmallow==3.5.1
 pynamodb==4.3.2
+python-jose-cryptodome==1.3.2
+pytz==2018.7
+pyyaml>=4.2b1
 requests==2.23.0
+timedelta==2018.11.20

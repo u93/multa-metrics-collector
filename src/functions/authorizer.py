@@ -1,11 +1,17 @@
-import logging
 import re
+
+from handlers.utils import base_response
+
+from settings.logs import Logger
+
+logs_handler = Logger()
+logger = logs_handler.get_logger()
 
 
 def lambda_handler(event, context):
-    logging.info(event)
-    logging.info("Client token: " + event["authorizationToken"])
-    logging.info("Method ARN: " + event["methodArn"])
+    logger.info(event)
+    logger.info("Client token: " + event["authorizationToken"])
+    logger.info("Method ARN: " + event["methodArn"])
     """
     Validate the incoming token and produce the principal user 
     identifier associated with the token this could be accomplished 
@@ -58,6 +64,7 @@ def lambda_handler(event, context):
     # context['obj'] = {'foo':'bar'} <- also invalid
 
     auth_response["context"] = context
+    logger.info(logger)
 
     return auth_response
 
