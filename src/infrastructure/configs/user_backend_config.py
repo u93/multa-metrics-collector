@@ -53,7 +53,7 @@ USER_BACKEND_CONFIGS = {
                 {
                     "table_name": "service_tokens",
                     "partition_key": "id",
-                    "stream": {"enabled": False, },
+                    "stream": {"enabled": False,},
                     "billing_mode": "pay_per_request",
                 },
             ],

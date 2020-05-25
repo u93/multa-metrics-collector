@@ -12,9 +12,7 @@ BASE_CONFIGS = {
             "string_value": {"TEST": True},
         },
         "BASE_CONFIG_BUCKETS": {
-            "buckets": [
-                {"bucket_name": "backend-static-data", "versioned": False, "public_read_access": False}
-            ],
+            "buckets": [{"bucket_name": "backend-static-data", "versioned": False, "public_read_access": False}],
         },
         "BASE_CONFIG_FUNCTIONS": {
             "functions": [

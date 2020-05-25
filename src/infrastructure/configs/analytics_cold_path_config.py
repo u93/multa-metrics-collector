@@ -78,10 +78,7 @@ ANALYTICS_COLD_PATH_CONFIGS = {
                     "proxy": False,
                     "default_cors_options": {"allow_origins": ["*"], "options_status_code": 200},
                     "default_http_methods": ["ANY"],
-                    "default_stage_options": {
-                        "metrics_enabled": True,
-                        "logging_level": "INFO"
-                    },
+                    "default_stage_options": {"metrics_enabled": True, "logging_level": "INFO"},
                     "default_handler": {
                         "lambda_name": "serverless_analytics_cold_default_handler",
                         "description": "Lambda Function that will handle defaulted requests to Serverless Analytics API.",
@@ -108,8 +105,8 @@ ANALYTICS_COLD_PATH_CONFIGS = {
                         "environment_vars": {"ENVIRONMENT": "dev"},
                         "iam_actions": ["*"],
                     },
-                }
-            }
+                },
+            },
         },
     },
     # "demo": {},
