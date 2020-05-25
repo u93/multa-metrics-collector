@@ -273,7 +273,7 @@ if __name__ == "__main__":
     lambda_handler(
         event=dict(
             authorizationToken="Token c9ddf192612858106b70409893dd1795",
-            methodArn="arn:aws:execute-api:us-east-1:112646120612:2qoob0tpqb/prod/GET/plans/"
+            methodArn="arn:aws:execute-api:us-east-1:112646120612:2qoob0tpqb/prod/GET/plans/",
         ),
-        context={}
+        context={},
     )

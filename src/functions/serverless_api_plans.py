@@ -58,7 +58,5 @@ def lambda_handler(event, context):
 
 
 if __name__ == "__main__":
-    event = {
-        "httpMethod": "GET"
-    }
+    event = {"httpMethod": "GET"}
     lambda_handler(event=event, context={})

@@ -29,3 +29,8 @@ def lambda_handler(event, context):
     print(event)
 
     return {"time": activation_time, "status": 200}
+
+
+if __name__ == "__main__":
+    event = {}
+    lambda_handler(event=event, context={})

@@ -19,7 +19,7 @@ from settings.aws import (
     PLANS_TABLE_NAME,
     ROLES_TABLE_NAME,
     SERVICE_TOKENS_TABLE_NAME,
-    USERS_TABLE_NAME
+    USERS_TABLE_NAME,
 )
 from settings.common import MAX_SIZE_PER_PAGE, SERVICE_TOKEN_BYTES
 from settings.logs import Logger
@@ -49,11 +49,11 @@ class Organizations(Model):
         cls.validate_table()
         try:
             if id_ is None:
-                plan = cls(id=f"{uuid.uuid4()}##{name}", conditions=conditions, price=price, last_updated=round(time.time()))
-            else:
                 plan = cls(
-                    id=id_, conditions=conditions, price=price, last_updated=round(time.time())
+                    id=f"{uuid.uuid4()}##{name}", conditions=conditions, price=price, last_updated=round(time.time())
                 )
+            else:
+                plan = cls(id=id_, conditions=conditions, price=price, last_updated=round(time.time()))
             plan.save()
         except Exception:
             logger.error("Error SAVING new PLAN")
@@ -147,7 +147,7 @@ class Organizations(Model):
             name=self.id.split("##")[1],
             conditions=self.conditions.as_dict(),
             price=self.price.as_dict(),
-            lastUpdated=self.last_updated
+            lastUpdated=self.last_updated,
         )
 
     @classmethod
@@ -182,7 +182,7 @@ class ServiceTokens(Model):
                     # TODO: ADD ROLE
                     is_valid=True,
                     created_time=round(time.time()),
-                    last_updated=round(time.time())
+                    last_updated=round(time.time()),
                 )
             else:
                 token = cls(
@@ -191,7 +191,7 @@ class ServiceTokens(Model):
                     # TODO: ADD ROLE
                     is_valid=is_valid,
                     created_time=created_time,
-                    last_updated=round(time.time())
+                    last_updated=round(time.time()),
                 )
             token.save()
         except Exception:
@@ -286,7 +286,7 @@ class ServiceTokens(Model):
             value=self.value,
             isValid=self.is_valid,
             createdTime=self.created_time,
-            lastUpdated=self.last_updated
+            lastUpdated=self.last_updated,
         )
 
     @classmethod
@@ -317,11 +317,11 @@ class Plans(Model):
         cls.validate_table()
         try:
             if id_ is None:
-                plan = cls(id=f"{uuid.uuid4()}##{name}", conditions=conditions, price=price, last_updated=round(time.time()))
-            else:
                 plan = cls(
-                    id=id_, conditions=conditions, price=price, last_updated=round(time.time())
+                    id=f"{uuid.uuid4()}##{name}", conditions=conditions, price=price, last_updated=round(time.time())
                 )
+            else:
+                plan = cls(id=id_, conditions=conditions, price=price, last_updated=round(time.time()))
             plan.save()
         except Exception:
             logger.error("Error SAVING new PLAN")
@@ -415,7 +415,7 @@ class Plans(Model):
             name=self.id.split("##")[1],
             conditions=self.conditions.as_dict(),
             price=self.price.as_dict(),
-            lastUpdated=self.last_updated
+            lastUpdated=self.last_updated,
         )
 
     @classmethod
@@ -423,4 +423,3 @@ class Plans(Model):
         if not cls.exists():
             logger.error(f"Table {PLANS_TABLE_NAME} does not exists!")
             raise Exception
-
