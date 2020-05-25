@@ -17,9 +17,7 @@ class LambdaHandler(Sts):
     def invoke(self, function_name, payload):
         try:
             response = self.lambda_client.invoke(
-                FunctionName=function_name,
-                InvocationType="RequestResponse",
-                Payload=payload,
+                FunctionName=function_name, InvocationType="RequestResponse", Payload=payload,
             )
 
         except Exception:
