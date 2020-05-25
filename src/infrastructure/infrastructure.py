@@ -109,6 +109,18 @@ class UserApisBackend(core.Stack):
     def __init__(self, scope: core.Construct, id: str, config=None, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
+        self._fan_out_api_lambdalayer = AwsLambdaLayerVenv(
+            self,
+            id=f"AnalyticsColdPath-LambdaLayer-{config['environ']}",
+            prefix="multa_backend",
+            environment=config["environ"],
+            configuration=config["config"]["SERVERLESS_REST_API_LAMBDA_LAYER"],
+        )
+        layer_arn = self._fan_out_api_lambdalayer.lambda_layer.layer_version_arn
+
+        for function in config["config"]["SERVERLESS_REST_API"]["api"]["resource_trees"]:
+            function["handler"]["layers"].append(layer_arn)
+
         self._serverless_rest_api = AwsApiGatewayLambdaPipes(
             self,
             id=f"ServerlessRestApi-{config['environ']}",
@@ -136,6 +148,18 @@ class AnalyticsColdPathStack(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, config=None, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
+        self._fan_out_api_lambdalayer = AwsLambdaLayerVenv(
+            self,
+            id=f"AnalyticsColdPath-LambdaLayer-{config['environ']}",
+            prefix="multa_backend",
+            environment=config["environ"],
+            configuration=config["config"]["ANALYTICS_FAN_OUT_LAMBDA_LAYER"],
+        )
+        layer_arn = self._fan_out_api_lambdalayer.lambda_layer.layer_version_arn
+
+        for function in config["config"]["ANALYTICS_FAN_OUT_API"]["functions"]:
+            function["layers"].append(layer_arn)
+        config["config"]["ANALYTICS_FAN_OUT_API"]["api"]["authorizer_function"]["origin"]["layers"].append(layer_arn)
 
         fan_out_api = AwsApiGatewayLambdaFanOutBE(
             self,

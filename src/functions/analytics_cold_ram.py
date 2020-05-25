@@ -1,6 +1,7 @@
 import json
 import os
 import time
+import uuid
 
 from handlers.utils import base_response
 from settings.logs import Logger
@@ -35,7 +36,7 @@ def lambda_handler(event, context):
     logger.info(os.environ)
     logger.info(event)
 
-    return {"time": activation_time, "status": 200}
+    return {"time": activation_time, "status": 200, "metric": "ram", "id": str(uuid.uuid4())}
 
 
 if __name__ == "__main__":
