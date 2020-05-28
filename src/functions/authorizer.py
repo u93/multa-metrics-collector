@@ -1,12 +1,46 @@
 import re
+import traceback
 
-from handlers.users_backend.models import ServiceTokens
-from handlers.utils import base_response
+from handlers.users_backend.models import Roles, ServiceTokens
 
 from settings.logs import Logger
 
 logs_handler = Logger()
 logger = logs_handler.get_logger()
+
+
+def validate_token(access_token: str):
+    user_id = "123"
+    if user_id:
+        return user_id
+    else:
+        return False
+
+
+def get_service_tokens():
+    system_service_tokens, total_service_tokens, last_evaluated_key = ServiceTokens.get_records()
+    current_service_tokens = ServiceTokens.records_to_dict(system_service_tokens)
+    current_service_tokens_values = [current_service_token["value"] for current_service_token in current_service_tokens]
+
+    return current_service_tokens_values
+
+
+def get_user_role(user_id):
+    role_id = "5e249517-92cc-4c26-a8fb-233a21b33b4c##admin"
+    role = Roles.get_record_by_id(id_=role_id)
+
+    return role.to_dict()
+
+
+def is_authorized(current_path: str, user_id: str):
+    role_logic_groups = get_user_role(user_id)["logic_groups"]
+    allowed_paths = list()
+    for role_logic_group in role_logic_groups:
+        allowed_paths.extend(role_logic_group["resources"])
+    if current_path in allowed_paths:
+        return True
+    else:
+        return False
 
 
 def lambda_handler(event, context):
@@ -15,7 +49,6 @@ def lambda_handler(event, context):
     logger.info("Method ARN: " + event["methodArn"])
 
     token_value = event["authorizationToken"].split(" ")[1]
-    invoked_api_gateway_method = event["methodArn"]
     """
     Validate the incoming token and produce the principal user 
     identifier associated with the token this could be accomplished 
@@ -52,13 +85,26 @@ def lambda_handler(event, context):
     policy.region = tmp[3]
     policy.stage = api_gateway_arn_tmp[1]
 
+    # GET CURRENT PATH
+    resource_path_list = api_gateway_arn_tmp[3:]
+    del resource_path_list[-1]
+    resource_path = "".join(resource_path_list)
+    logger.info(resource_path)
+
     # ADD SERVICE TOKEN VALIDATION
-    system_service_tokens, total_service_tokens, last_evaluated_key = ServiceTokens.get_records()
-    current_service_tokens = ServiceTokens.records_to_dict(system_service_tokens)
-    current_service_tokens_values = [current_service_token["value"] for current_service_token in current_service_tokens]
+    current_service_tokens_values = get_service_tokens()
+    current_user_info = validate_token(access_token=token_value)
     if token_value in current_service_tokens_values:
         logger.info(f"Allowing all methods for {token_value}")
         policy.allow_all_methods()
+    elif current_user_info is not False:
+        user_authorization = is_authorized(current_path=resource_path, user_id=current_user_info)
+        if user_authorization is True:
+            logger.info(f"Allowing all methods for {token_value}")
+            policy.allow_all_methods()
+        else:
+            logger.error(f"Denying all methods for {token_value}")
+            policy.deny_all_methods()
     else:
         logger.error(f"Denying all methods for {token_value}")
         policy.deny_all_methods()
@@ -270,10 +316,11 @@ class AuthPolicy(object):
 
 
 if __name__ == "__main__":
-    lambda_handler(
+    response = lambda_handler(
         event=dict(
             authorizationToken="Token c9ddf192612858106b70409893dd1795",
-            methodArn="arn:aws:execute-api:us-east-1:112646120612:2qoob0tpqb/prod/GET/plans/",
+            methodArn="arn:aws:execute-api:us-east-1:112646120612:2qoob0tpqb/prod/GET/plans/123",
         ),
         context={},
     )
+    logger.info(response)

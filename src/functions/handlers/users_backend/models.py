@@ -296,6 +296,140 @@ class ServiceTokens(Model):
             raise Exception
 
 
+class InternalRoleGroup(MapAttribute):
+    rest_api_id = UnicodeAttribute()
+    stage = UnicodeAttribute()
+    method = UnicodeAttribute()
+    resources = ListAttribute()
+
+
+class Roles(Model):
+    class Meta:
+        table_name = ROLES_TABLE_NAME
+
+    id = UnicodeAttribute(hash_key=True, null=False)
+    logic_groups = ListAttribute(null=False, of=InternalRoleGroup)
+    last_updated = NumberAttribute(default_for_new=round(time.time()))
+
+    @classmethod
+    def create(cls, name: str, logic_groups: list, id_=None):
+        """
+        Can be used to create as well to update (if record ID is passed).
+        :param name: Plan Name
+        :param logic_groups: Plan conditions that will be shown in the UI
+        :param id_: Element ID in DynamoDB
+        :return: Class Instance
+        """
+        cls.validate_table()
+        try:
+            if id_ is None:
+                role = cls(id=f"{uuid.uuid4()}##{name}", logic_groups=logic_groups, last_updated=round(time.time()))
+            else:
+                role = cls(
+                    id=id_, logic_groups=logic_groups, last_updated=round(time.time())
+                )
+            role.save()
+        except Exception:
+            logger.error("Error SAVING new ROLE")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return role
+
+    def delete_record(self):
+        try:
+            self.delete()
+        except Exception:
+            logger.error("Error DELETING ROLE")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return True
+
+    @classmethod
+    def delete_record_by_id(cls, id_: str):
+        cls.validate_table()
+        try:
+            roles = cls.get_record_by_id(id_=id_)
+            for role in roles:
+                role.delete()
+        except Exception:
+            logger.error("Error DELETING ROLE by id")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return True
+
+    @classmethod
+    def get_record_by_id(cls, id_: str):
+        cls.validate_table()
+        try:
+            role = cls.query(hash_key=id_)
+        except Exception:
+            logger.error("Error QUERYING individual ROLE")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return role
+
+    @classmethod
+    def get_records(cls, last_evaluated_key=None):
+        cls.validate_table()
+        try:
+            roles = cls.scan(last_evaluated_key=last_evaluated_key, limit=MAX_SIZE_PER_PAGE)
+            roles_last_evaluated_key = roles.last_evaluated_key
+            roles_total = cls.count()
+        except Exception:
+            logger.error("Error SCANNING all ROLEs")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return roles, roles_total, roles_last_evaluated_key
+
+    @staticmethod
+    def records_to_dict(records):
+        try:
+            dict_records = [record.to_dict() for record in records]
+        except Exception:
+            logger.error("Error SCANNING all ROLEs")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return dict_records
+
+    def update_record(self, **kwargs):
+        self.validate_table()
+        try:
+            action_list = list()
+            for attr, value in kwargs.items():
+                action = getattr(self, attr, None)
+                if action is None:
+                    continue
+                else:
+                    action.set(value)
+            latest_plan = self.update(actions=action_list)
+        except Exception:
+            logger.error("Error UPDATING PLAN record")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return latest_plan
+
+    def to_dict(self):
+        return dict(
+            id=self.id,
+            name=self.id.split("##")[1],
+            logic_groups=[logic_group.as_dict() for logic_group in self.logic_groups],
+            lastUpdated=self.last_updated
+        )
+
+    @classmethod
+    def validate_table(cls):
+        if not cls.exists():
+            logger.error(f"Table {PLANS_TABLE_NAME} does not exists!")
+            raise Exception
+
+
 class Plans(Model):
     class Meta:
         table_name = PLANS_TABLE_NAME
