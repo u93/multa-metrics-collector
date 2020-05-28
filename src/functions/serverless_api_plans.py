@@ -13,7 +13,7 @@ logger = logs_handler.get_logger()
 
 def get(event, **kwargs):
     try:
-        record_plans, total_records, plans_last_evaluated_key = Plans.get_records()
+        record_plans, total_records, roles_last_evaluated_key = Plans.get_records()
         current_plans = Plans.records_to_dict(record_plans)
     except Exception:
         logger.error("Error GETTING current plans")

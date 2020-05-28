@@ -1,7 +1,35 @@
 {
-  "roles": [
-    {
-
-    }
-  ]
+  "roles": {
+    "values": [
+      {
+        "id": "5e249517-92cc-4c26-a8fb-233a21b33b4c##admin",
+        "name": "admin",
+        "logic_groups": [
+          {
+            "restApiId": "2qoob0tpqb",
+            "stage": "prod",
+            "method": "GET",
+            "resources": ["users", "plans", "roles", "organizations"]
+          },
+          {
+            "restApiId": "2qoob0tpqb",
+            "stage": "prod",
+            "method": "POST",
+            "resources": ["users", "plans", "roles", "organizations"]
+          }
+        ]
+      },
+      {
+        "name": "viewer",
+        "logic_groups": [
+          {
+            "restApiId": "2qoob0tpqb",
+            "stage": "prod",
+            "method": "GET",
+            "resources": ["users", "plans", "roles"]
+          }
+        ]
+      }
+    ]
+  }
 }
