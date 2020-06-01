@@ -1,0 +1,15 @@
+{
+	"analysis": "average",
+	"parameters": {
+		"metric_value": "",
+		"metric_range": "",
+		"start_time": "",
+		"end_time": "",
+		"start_date": "",
+		"end_date": "",
+		"start_timestamp": "1582213241",
+		"end_timestamp": "1583713243",
+		"agents": ["40623107e646", "40623107e600"],
+		"metadata": {}
+	}
+}
