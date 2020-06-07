@@ -12,3 +12,14 @@ ANALYTICS_LAMBDA_ROUTING_MAPPING = {
     "hdd": "multa_backend_analytics_cold_hdd_handler_dev",
     "connectivity": "multa_backend_analytics_cold_connectivity_handler_dev",
 }
+
+IOT_ANALYTICS_CHANNEL_0 = os.environ.get("IOT_ANALYTICS_CHANNEL_0")
+IOT_ANALYTICS_CHANNEL_1 = os.environ.get("IOT_ANALYTICS_CHANNEL_1")
+
+IOT_ANALYTICS_HOT_PATH_KEYS = {
+
+}
+
+IOT_ANALYTICS_COLD_PATH_KEYS = {
+
+}

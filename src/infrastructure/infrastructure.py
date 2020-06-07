@@ -161,14 +161,6 @@ class AnalyticsStack(core.Stack):
         config["config"]["ANALYTICS_FAN_OUT_API"]["api"]["authorizer_function"]["origin"]["layers"].append(layer_arn)
         config["config"]["ANALYTICS_INGESTION_ENGINE"]["lambda_handler"]["layers"].append(layer_arn)
 
-        ingestion_engine = AwsIotRulesLambdaPipes(
-            self,
-            id=f"AnalyticsPath-IngestionEngine-{config['environ']}",
-            prefix="multa_backend",
-            environment=config["environ"],
-            configuration=config["config"]["ANALYTICS_INGESTION_ENGINE"],
-        )
-
         for index, pipeline_definition in enumerate(config["config"]["ANALYTICS_INGESTION_PIPELINES"]):
             pipeline = AwsIotAnalyticsDataWorkflow(
                 self,
@@ -177,6 +169,16 @@ class AnalyticsStack(core.Stack):
                 environment=config["environ"],
                 configuration=pipeline_definition,
             )
+            config["config"]["ANALYTICS_INGESTION_ENGINE"]["lambda_handler"]["environment_vars"][
+                f"IOT_ANALYTICS_CHANNEL_{index}"] = pipeline.channel.channel_name
+
+        ingestion_engine = AwsIotRulesLambdaPipes(
+            self,
+            id=f"AnalyticsPath-IngestionEngine-{config['environ']}",
+            prefix="multa_backend",
+            environment=config["environ"],
+            configuration=config["config"]["ANALYTICS_INGESTION_ENGINE"],
+        )
 
         fan_out_api = AwsApiGatewayLambdaFanOutBE(
             self,

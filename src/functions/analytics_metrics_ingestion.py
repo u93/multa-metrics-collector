@@ -4,7 +4,7 @@ import time
 
 from handlers.data_analysis.lambda_functions import LambdaHandler
 from handlers.utils import base_response
-from settings.aws import ANALYTICS_LAMBDA_ROUTING_MAPPING
+from settings.aws import IOT_ANALYTICS_CHANNEL_0
 from settings.logs import Logger
 
 logs_handler = Logger()

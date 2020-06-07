@@ -20,7 +20,9 @@ ANALYTICS_CONFIGS = {
                 "handler": "analytics_metrics_ingestion.lambda_handler",
                 "layers": [],
                 "timeout": 10,
-                "environment_vars": {"ENVIRONMENT": "dev", "IOT_ANALYTICS_CHANNEL": ""},
+                "environment_vars": {
+                    "ENVIRONMENT": "dev",
+                },
                 "iam_actions": ["*"],
            },
            "iot_rule": {
