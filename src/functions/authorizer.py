@@ -1,5 +1,11 @@
+import os
 import re
+import time
 import traceback
+
+from jose import jwk, jwt
+from jose.utils import base64url_decode
+import requests
 
 from handlers.users_backend.models import Roles, ServiceTokens
 
@@ -9,8 +15,69 @@ logs_handler = Logger()
 logger = logs_handler.get_logger()
 
 
+def get_cognito_keys():
+    keys = requests.get(url=os.environ.get("KEYS_URL"))
+    return keys.json()["keys"]
+
+
+def get_claims(event, context):
+
+    token = event["authorizationToken"][7:]
+
+    # get the kid from the headers prior to verification
+    headers = jwt.get_unverified_headers(token)
+    kid = headers["kid"]
+
+    # search for the kid in the downloaded public keys
+    cognito_keys = get_cognito_keys()
+    key_index = -1
+    for i in range(len(cognito_keys)):
+        if kid == cognito_keys[i]["kid"]:
+            key_index = i
+            break
+    if key_index == -1:
+        logger.error("Public key not found in jwks.json")
+        return False
+
+    # construct the public key
+    public_key = jwk.construct(cognito_keys[key_index])
+
+    # get the last two sections of the token,
+    # message and signature (encoded in base64)
+    message, encoded_signature = str(token).rsplit(".", 1)
+
+    # decode the signature
+    decoded_signature = base64url_decode(encoded_signature.encode("utf-8"))
+
+    # verify the signature
+    if not public_key.verify(message.encode("utf8"), decoded_signature):
+        logger.error("Signature verification failed")
+        return False
+
+    logger.info("Signature successfully verified")
+
+    # since we passed the verification, we can now safely
+    # use the unverified claims
+    claims = jwt.get_unverified_claims(token)
+
+    # additionally we can verify the token expiration
+    if time.time() > claims["exp"]:
+        logger.error("Token is expired")
+        return False
+
+    # and the Audience  (use claims['client_id'] if verifying an access token)
+    if "aud" in claims and claims["aud"] != os.environ.get("USER_POOL_APP_CLIENT_ID"):
+        logger.error("Token was not issued for this audience")
+        return False
+
+    # now we can use the claims
+    return claims
+
+
 def validate_token(access_token: str):
-    user_id = "123"
+    headers = jwt.get_unverified_headers(access_token)
+    kid = headers["kid"]
+    user_id = ""  # SHOULD BE STR
     if user_id:
         return user_id
     else:
@@ -57,7 +124,9 @@ def lambda_handler(event, context):
     2. Decode a JWT token inline
     3. Lookup in a self-managed DB
     """
-    principal_id = "user|a1b2c3d4"
+    unverified_claims = jwt.get_unverified_claims(token_value)
+    logger.info(unverified_claims)
+    principal_id = jwt.get_unverified_claims(token_value).get("username")
 
     """
     You can send a 401 Unauthorized response to the client by failing like so:
@@ -97,14 +166,18 @@ def lambda_handler(event, context):
     if token_value in current_service_tokens_values:
         logger.info(f"Allowing all methods for {token_value}")
         policy.allow_all_methods()
-    elif current_user_info is not False:
+
+    # ADD USER TOKEN VALIDATION
+    elif current_user_info is not False or current_user_info is not None:
         user_authorization = is_authorized(current_path=resource_path, user_id=current_user_info)
-        if user_authorization is True:
+        if bool(user_authorization) is True:
             logger.info(f"Allowing all methods for {token_value}")
             policy.allow_all_methods()
         else:
             logger.error(f"Denying all methods for {token_value}")
             policy.deny_all_methods()
+
+    # IF EVERYTHING FAILS DENY ALL METHODS
     else:
         logger.error(f"Denying all methods for {token_value}")
         policy.deny_all_methods()

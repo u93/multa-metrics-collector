@@ -30,27 +30,39 @@ logger = logs_handler.logger
 
 class Organizations(Model):
     class Meta:
-        table_name = PLANS_TABLE_NAME
+        table_name = ORGANIZATIONS_TABLE_NAME
 
     id = UnicodeAttribute(hash_key=True, null=False)
-    conditions = MapAttribute(null=False)
-    price = MapAttribute(null=False)
-    last_updated = NumberAttribute(default_for_new=round(time.time()))
+    setting_id = UnicodeAttribute(range_key=True, null=False)
+    plan = UnicodeAttribute(null=False)
+    owner = UnicodeAttribute(null=False)
+    api_keys = ListAttribute(null=False)
+    is_valid = BooleanAttribute(null=False, default_for_new=True)
+    is_master = BooleanAttribute(null=False, default_for_new=False)
+    creation_time = NumberAttribute(null=False, default_for_new=round(time.time()))
+    billing_time = NumberAttribute(null=True, default_for_new=None)
+    last_updated = NumberAttribute(null=False, default_for_new=round(time.time()))
 
     @classmethod
-    def create(cls, name: str, conditions: dict, price: dict, id_=None):
+    def create(cls, name: str, plan: str, owner: dict, id_=None):
         """
         Can be used to create as well to update (if record ID is passed).
-        :param name: Plan Name
-        :param conditions: Plan conditions that will be shown in the UI
-        :param id_: Element ID in DynamoDB
+        :param name: Organization Name
+        :param plan: Plan ID in DynamoDB.
+        :param owner: User ID in DynamoDB.
+        :param id_: Element ID in DynamoDB.
         :return: Class Instance
         """
         cls.validate_table()
         try:
             if id_ is None:
-                plan = cls(
-                    id=f"{uuid.uuid4()}##{name}", conditions=conditions, price=price, last_updated=round(time.time())
+                organization = cls(
+                    id=f"{uuid.uuid4()}##{name}",
+                    plan=plan,
+                    owner=owner,
+                    api_keys=[secrets.token_hex(SERVICE_TOKEN_BYTES)],
+                    creation_time=round(time.time()),
+                    last_updated=round(time.time()),
                 )
             else:
                 plan = cls(id=id_, conditions=conditions, price=price, last_updated=round(time.time()))
@@ -325,9 +337,7 @@ class Roles(Model):
             if id_ is None:
                 role = cls(id=f"{uuid.uuid4()}##{name}", logic_groups=logic_groups, last_updated=round(time.time()))
             else:
-                role = cls(
-                    id=id_, logic_groups=logic_groups, last_updated=round(time.time())
-                )
+                role = cls(id=id_, logic_groups=logic_groups, last_updated=round(time.time()))
             role.save()
         except Exception:
             logger.error("Error SAVING new ROLE")
@@ -420,7 +430,7 @@ class Roles(Model):
             id=self.id,
             name=self.id.split("##")[1],
             logic_groups=[logic_group.as_dict() for logic_group in self.logic_groups],
-            lastUpdated=self.last_updated
+            lastUpdated=self.last_updated,
         )
 
     @classmethod

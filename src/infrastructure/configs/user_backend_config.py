@@ -21,7 +21,10 @@ USER_BACKEND_CONFIGS = {
                     "handler": "authorizer.lambda_handler",
                     "layers": [],
                     "timeout": 10,
-                    "environment_vars": {"ENVIRONMENT": "dev"},
+                    "environment_vars": {
+                        "ENVIRONMENT": "dev",
+                        "USER_POOL_APP_CLIENT_ID": "5uv9ea0mr622lv76vpqhjcvoh",
+                    },
                     "iam_actions": ["*"],
                 }
             },
