@@ -16,10 +16,42 @@ ANALYTICS_LAMBDA_ROUTING_MAPPING = {
 IOT_ANALYTICS_CHANNEL_0 = os.environ.get("IOT_ANALYTICS_CHANNEL_0")
 IOT_ANALYTICS_CHANNEL_1 = os.environ.get("IOT_ANALYTICS_CHANNEL_1")
 
-IOT_ANALYTICS_HOT_PATH_KEYS = {
-
-}
+IOT_ANALYTICS_HOT_PATH_KEYS = {}
 
 IOT_ANALYTICS_COLD_PATH_KEYS = {
-
+    "ram_memory_total": None,
+    "ram_memory_available": None,
+    "ram_memory_percent": None,
+    "ram_memory_used": None,
+    "ram_memory_free": None,
+    "ram_memory_shared": None,
+    "ram_memory_buffers": None,
+    "ram_memory_cached": None,
+    "ram_swap_total": None,
+    "ram_swap_used": None,
+    "ram_swap_free": None,
+    "ram_swap_percent": None,
+    "ram_insights_current": None,
+    "ram_insights_total": None,
+    "ram_insights_percent": None,
+    "ram_insights_status": None,
+    "cpu_dynamic_insights_percent": None,
+    "cpu_dynamic_insights_status": None,
+    "disk_dynamic_current": None,
+    "disk_dynamic_total": None,
+    "disk_dynamic_percent": None,
+    "disk_dynamic_insights_status": None,
+    "disk_dynamic_io_read_count": None,
+    "disk_dynamic_io_write_count": None,
+    "disk_dynamic_io_read_bytes": None,
+    "disk_dynamic_io_write_bytes": None,
+    "disk_dynamic_io_read_time": None,
+    "disk_dynamic_io_write_time": None,
+    "temperature_current": None,
+    "temperature_total": None,
+    "temperature_insights_percent": None,
+    "temperature_insights_status": None,
+    "boot_time_insights_seconds_since_boot": None,
+    "boot_time_insights_days_since_boot": None,
+    "boot_time_insights_status": None,
 }

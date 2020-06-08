@@ -12,25 +12,31 @@ ANALYTICS_CONFIGS = {
             "string_value": {"TEST": True},
         },
         "ANALYTICS_INGESTION_ENGINE": {
-           "lambda_handler": {
-                "lambda_name": "analytics_metrics_ingestion_handler",
-                "description": "Lambda Function that will handle RAM Analysis logic for Cold Analytics.",
-                "code_path": "./src/functions/",
-                "runtime": "PYTHON_3_7",
-                "handler": "analytics_metrics_ingestion.lambda_handler",
-                "layers": [],
-                "timeout": 10,
-                "environment_vars": {
-                    "ENVIRONMENT": "dev",
+            "queue": {
+                "queue_name": "analytics_ingestion_queue",
+
+            },
+            "lambda_handlers": [
+                {
+                    "lambda_name": "analytics_metrics_ingestion_handler",
+                    "description": "Lambda Function that will handle RAM Analysis logic for Cold Analytics.",
+                    "code_path": "./src/functions/",
+                    "runtime": "PYTHON_3_7",
+                    "handler": "analytics_metrics_ingestion.lambda_handler",
+                    "layers": [],
+                    "timeout": 10,
+                    "environment_vars": {
+                        "ENVIRONMENT": "dev",
+                    },
+                    "iam_actions": ["*"],
                 },
-                "iam_actions": ["*"],
-           },
-           "iot_rule": {
-               "rule_name": "analytics_ingestion_rule",
-               "description": "IoT Rule for data ingestion coming from Multa Agents",
-               "rule_disabled": False,
-               "sql": "SELECT * FROM '$aws/things/+/shadow/update/documents'",
-               "aws_iot_sql_version": "2016-03-23"
+            ],
+            "iot_rule": {
+                "rule_name": "analytics_ingestion_rule",
+                "description": "IoT Rule for data ingestion coming from Multa Agents",
+                "rule_disabled": False,
+                "sql": "SELECT * FROM '$aws/things/+/shadow/update/documents'",
+                "aws_iot_sql_version": "2016-03-23"
             }
         },
         "ANALYTICS_INGESTION_PIPELINES": [

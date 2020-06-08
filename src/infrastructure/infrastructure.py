@@ -4,6 +4,7 @@ from multacdkrecipies import (
     AwsApiGatewayLambdaPipes,
     AwsIotAnalyticsDataWorkflow,
     AwsIotRulesLambdaPipes,
+    AwsIotRulesSqsPipes,
     AwsLambdaFunctionsCluster,
     AwsLambdaLayerVenv,
     AwsS3BucketsCluster,
@@ -156,10 +157,11 @@ class AnalyticsStack(core.Stack):
         )
         layer_arn = self._fan_out_api_lambdalayer.lambda_layer.layer_version_arn
 
+        config["config"]["ANALYTICS_FAN_OUT_API"]["api"]["authorizer_function"]["origin"]["layers"].append(layer_arn)
         for function in config["config"]["ANALYTICS_FAN_OUT_API"]["functions"]:
             function["layers"].append(layer_arn)
-        config["config"]["ANALYTICS_FAN_OUT_API"]["api"]["authorizer_function"]["origin"]["layers"].append(layer_arn)
-        config["config"]["ANALYTICS_INGESTION_ENGINE"]["lambda_handler"]["layers"].append(layer_arn)
+        for lambda_function in config["config"]["ANALYTICS_INGESTION_ENGINE"]["lambda_handlers"]:
+            lambda_function["layers"].append(layer_arn)
 
         for index, pipeline_definition in enumerate(config["config"]["ANALYTICS_INGESTION_PIPELINES"]):
             pipeline = AwsIotAnalyticsDataWorkflow(
@@ -169,10 +171,10 @@ class AnalyticsStack(core.Stack):
                 environment=config["environ"],
                 configuration=pipeline_definition,
             )
-            config["config"]["ANALYTICS_INGESTION_ENGINE"]["lambda_handler"]["environment_vars"][
-                f"IOT_ANALYTICS_CHANNEL_{index}"] = pipeline.channel.channel_name
+            for lambda_function in config["config"]["ANALYTICS_INGESTION_ENGINE"]["lambda_handlers"]:
+                lambda_function["environment_vars"][f"IOT_ANALYTICS_CHANNEL_{index}"] = pipeline.channel.channel_name
 
-        ingestion_engine = AwsIotRulesLambdaPipes(
+        ingestion_engine = AwsIotRulesSqsPipes(
             self,
             id=f"AnalyticsPath-IngestionEngine-{config['environ']}",
             prefix="multa_backend",

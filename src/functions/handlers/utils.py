@@ -8,4 +8,3 @@ def base_response(status_code: int, dict_body=None):
         response_dict["body"] = json.dumps(dict_body)
 
     return response_dict
-
