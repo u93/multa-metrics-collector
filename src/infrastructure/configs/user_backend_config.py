@@ -23,7 +23,10 @@ USER_BACKEND_CONFIGS = {
                     "timeout": 10,
                     "environment_vars": {
                         "ENVIRONMENT": "dev",
+                        "USER_POOL_ID": "us-east-1_DtWS0jYn8",
                         "USER_POOL_APP_CLIENT_ID": "5uv9ea0mr622lv76vpqhjcvoh",
+                        "KEYS_URL": "https://cognito-idp.{region}.amazonaws.com/{user_pool_id}/.well-known/jwks.json",
+                        "REGION": "us-east-1"
                     },
                     "iam_actions": ["*"],
                 }

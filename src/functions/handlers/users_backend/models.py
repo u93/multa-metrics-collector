@@ -374,13 +374,13 @@ class Roles(Model):
     def get_record_by_id(cls, id_: str):
         cls.validate_table()
         try:
-            role = cls.query(hash_key=id_)
+            roles = cls.query(hash_key=id_)
         except Exception:
             logger.error("Error QUERYING individual ROLE")
             logger.error(traceback.format_exc())
             return False
         else:
-            return role
+            return roles
 
     @classmethod
     def get_records(cls, last_evaluated_key=None):
