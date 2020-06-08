@@ -1,4 +1,5 @@
 import json
+import time
 import traceback
 import uuid
 
@@ -34,6 +35,8 @@ def get_hot_path_metrics(data: dict):
 def get_cold_path_metrics(data: dict):
     current_data = data["current"]["state"]["reported"]
 
+    IOT_ANALYTICS_COLD_PATH_KEYS["serial_number"] = data["serial_number"]
+    IOT_ANALYTICS_COLD_PATH_KEYS["timestamp"] = round(time.time())
     IOT_ANALYTICS_COLD_PATH_KEYS["ram_memory_total"] = current_data["ram_info"]["raw"]["memory"]["total"]
     IOT_ANALYTICS_COLD_PATH_KEYS["ram_memory_available"] = current_data["ram_info"]["raw"]["memory"]["available"]
     IOT_ANALYTICS_COLD_PATH_KEYS["ram_memory_percent"] = current_data["ram_info"]["raw"]["memory"]["percent"]

@@ -35,7 +35,7 @@ ANALYTICS_CONFIGS = {
                 "rule_name": "analytics_ingestion_rule",
                 "description": "IoT Rule for data ingestion coming from Multa Agents",
                 "rule_disabled": False,
-                "sql": "SELECT * FROM '$aws/things/+/shadow/update/documents'",
+                "sql": "SELECT *, topic(3) AS serial_number FROM '$aws/things/+/shadow/update/documents'",
                 "aws_iot_sql_version": "2016-03-23"
             }
         },

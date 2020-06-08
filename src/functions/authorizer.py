@@ -8,7 +8,7 @@ from jose.utils import base64url_decode
 import requests
 
 from handlers.users_backend.models import Roles, ServiceTokens
-
+from settings.authorizer import USER_POOL_APP_CLIENT_ID, KEYS_URL
 from settings.logs import Logger
 
 logs_handler = Logger()
@@ -16,71 +16,67 @@ logger = logs_handler.get_logger()
 
 
 def get_cognito_keys():
-    keys = requests.get(url=os.environ.get("KEYS_URL"))
+    logger.info(KEYS_URL)
+    keys = requests.get(url=KEYS_URL)
     return keys.json()["keys"]
 
 
-def get_claims(event, context):
-
-    token = event["authorizationToken"][7:]
-
-    # get the kid from the headers prior to verification
-    headers = jwt.get_unverified_headers(token)
-    kid = headers["kid"]
-
-    # search for the kid in the downloaded public keys
-    cognito_keys = get_cognito_keys()
-    key_index = -1
-    for i in range(len(cognito_keys)):
-        if kid == cognito_keys[i]["kid"]:
-            key_index = i
-            break
-    if key_index == -1:
-        logger.error("Public key not found in jwks.json")
-        return False
-
-    # construct the public key
-    public_key = jwk.construct(cognito_keys[key_index])
-
-    # get the last two sections of the token,
-    # message and signature (encoded in base64)
-    message, encoded_signature = str(token).rsplit(".", 1)
-
-    # decode the signature
-    decoded_signature = base64url_decode(encoded_signature.encode("utf-8"))
-
-    # verify the signature
-    if not public_key.verify(message.encode("utf8"), decoded_signature):
-        logger.error("Signature verification failed")
-        return False
-
-    logger.info("Signature successfully verified")
-
-    # since we passed the verification, we can now safely
-    # use the unverified claims
-    claims = jwt.get_unverified_claims(token)
-
-    # additionally we can verify the token expiration
-    if time.time() > claims["exp"]:
-        logger.error("Token is expired")
-        return False
-
-    # and the Audience  (use claims['client_id'] if verifying an access token)
-    if "aud" in claims and claims["aud"] != os.environ.get("USER_POOL_APP_CLIENT_ID"):
-        logger.error("Token was not issued for this audience")
-        return False
-
-    # now we can use the claims
-    return claims
-
-
 def validate_token(access_token: str):
-    headers = jwt.get_unverified_headers(access_token)
-    kid = headers["kid"]
-    user_id = ""  # SHOULD BE STR
-    if user_id:
-        return user_id
-    else:
+    try:
+        # get the kid from the headers prior to verification
+        headers = jwt.get_unverified_headers(access_token)
+        kid = headers["kid"]
+
+        # search for the kid in the downloaded public keys
+        cognito_keys = get_cognito_keys()
+        key_index = -1
+
+        for i in range(len(cognito_keys)):
+            if kid == cognito_keys[i]["kid"]:
+                key_index = i
+                break
+        if key_index == -1:
+            logger.error("Public key not found in jwks.json")
+            return False
+
+        # construct the public key
+        public_key = jwk.construct(cognito_keys[key_index])
+
+        # get the last two sections of the token,
+        # message and signature (encoded in base64)
+        message, encoded_signature = str(access_token).rsplit(".", 1)
+
+        # decode the signature
+        decoded_signature = base64url_decode(encoded_signature.encode("utf-8"))
+
+        # verify the signature
+        if not public_key.verify(message.encode("utf8"), decoded_signature):
+            logger.error("Signature verification failed")
+            return False
+
+        logger.info("Signature successfully verified")
+
+        # since we passed the verification, we can now safely
+        # use the unverified claims
+        claims = jwt.get_unverified_claims(access_token)
+
+        # additionally we can verify the token expiration
+        if time.time() > claims["exp"]:
+            logger.error("Token is expired")
+            return False
+
+        # and the Audience  (use claims['client_id'] if verifying an access token)
+        if "aud" in claims and claims["aud"] != USER_POOL_APP_CLIENT_ID:
+            logger.error("Token was not issued for this audience")
+            return False
+
+        # now we can use the claims
+        logger.info(claims)
+        return claims["cognito:username"]
+
+    except Exception:
+        logger.error("Error decoding Token")
+        logger.error(traceback.format_exc())
         return False
 
 
@@ -94,9 +90,9 @@ def get_service_tokens():
 
 def get_user_role(user_id):
     role_id = "5e249517-92cc-4c26-a8fb-233a21b33b4c##admin"
-    role = Roles.get_record_by_id(id_=role_id)
-
-    return role.to_dict()
+    roles = Roles.get_record_by_id(id_=role_id)
+    for role in roles:
+        return role.to_dict()
 
 
 def is_authorized(current_path: str, user_id: str):
@@ -124,9 +120,15 @@ def lambda_handler(event, context):
     2. Decode a JWT token inline
     3. Lookup in a self-managed DB
     """
-    unverified_claims = jwt.get_unverified_claims(token_value)
-    logger.info(unverified_claims)
-    principal_id = jwt.get_unverified_claims(token_value).get("username")
+    try:
+        unverified_claims = jwt.get_unverified_claims(token_value)
+        logger.info(unverified_claims)
+        principal_id = jwt.get_unverified_claims(token_value).get("cognito:username")
+        logger.info(principal_id)
+    except Exception:
+        logger.error("Error decoding token... Probably is malformed")
+        logger.error(traceback.format_exc())
+        principal_id = None
 
     """
     You can send a 401 Unauthorized response to the client by failing like so:
@@ -154,33 +156,36 @@ def lambda_handler(event, context):
     policy.region = tmp[3]
     policy.stage = api_gateway_arn_tmp[1]
 
-    # GET CURRENT PATH
-    resource_path_list = api_gateway_arn_tmp[3:]
-    del resource_path_list[-1]
-    resource_path = "".join(resource_path_list)
-    logger.info(resource_path)
+    if principal_id is None:
+        policy.deny_all_methods()
+    else:
+        # GET CURRENT PATH
+        resource_path_list = api_gateway_arn_tmp[3:]
+        del resource_path_list[-1]
+        resource_path = "".join(resource_path_list)
+        logger.info(resource_path)
 
-    # ADD SERVICE TOKEN VALIDATION
-    current_service_tokens_values = get_service_tokens()
-    current_user_info = validate_token(access_token=token_value)
-    if token_value in current_service_tokens_values:
-        logger.info(f"Allowing all methods for {token_value}")
-        policy.allow_all_methods()
-
-    # ADD USER TOKEN VALIDATION
-    elif current_user_info is not False or current_user_info is not None:
-        user_authorization = is_authorized(current_path=resource_path, user_id=current_user_info)
-        if bool(user_authorization) is True:
+        # ADD SERVICE TOKEN VALIDATION
+        current_service_tokens_values = get_service_tokens()
+        current_user_info = validate_token(access_token=token_value)
+        if token_value in current_service_tokens_values:
             logger.info(f"Allowing all methods for {token_value}")
             policy.allow_all_methods()
+
+        # ADD USER TOKEN VALIDATION
+        elif isinstance(current_user_info, str) is True:
+            user_authorization = is_authorized(current_path=resource_path, user_id=current_user_info)
+            if bool(user_authorization) is True:
+                logger.info(f"Allowing all methods for {token_value}")
+                policy.allow_all_methods()
+            else:
+                logger.error(f"Denying all methods for {token_value}")
+                policy.deny_all_methods()
+
+        # IF EVERYTHING FAILS DENY ALL METHODS
         else:
             logger.error(f"Denying all methods for {token_value}")
             policy.deny_all_methods()
-
-    # IF EVERYTHING FAILS DENY ALL METHODS
-    else:
-        logger.error(f"Denying all methods for {token_value}")
-        policy.deny_all_methods()
 
     """
     policy.allowMethod(HttpVerb.GET, "/pets/*")
@@ -391,7 +396,7 @@ class AuthPolicy(object):
 if __name__ == "__main__":
     response = lambda_handler(
         event=dict(
-            authorizationToken="Token c9ddf192612858106b70409893dd1795",
+            authorizationToken="Token eyJraWQiOiJBUTcrbDNJT2ZGZzhjSHN5dDExMlwvR3BSWEM4VHV4SUtiK1pqSGd2MFpmcz0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhNDE5ZGRjYy1jYjU3LTQ4ODctOGQyNC04MTZlMzY0YjNjOTIiLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb21cL3VzLWVhc3QtMV9EdFdTMGpZbjgiLCJjb2duaXRvOnVzZXJuYW1lIjoiYTQxOWRkY2MtY2I1Ny00ODg3LThkMjQtODE2ZTM2NGIzYzkyIiwiZ2l2ZW5fbmFtZSI6IkV1Z2VuaW8iLCJhdWQiOiI1dXY5ZWEwbXI2MjJsdjc2dnBxaGpjdm9oIiwiZXZlbnRfaWQiOiIxMTU2Nzc3MC1iNWQxLTQwMGQtODQ3MC04MDA4YThkMDU4ZDkiLCJ1cGRhdGVkX2F0IjoxNTkwMjY2NjQ3NjQ2LCJ0b2tlbl91c2UiOiJpZCIsImF1dGhfdGltZSI6MTU5MTU4NjcxOCwicGhvbmVfbnVtYmVyIjoiKzE3ODY2NzU4MDU0IiwiZXhwIjoxNTkxNTkwMzE5LCJpYXQiOjE1OTE1ODY3MTksImZhbWlseV9uYW1lIjoiQnJlaWpvIiwiZW1haWwiOiJlZWJmMTk5M0BnbWFpbC5jb20ifQ.WtvoyAK5tbr-ACYs7VZI1GVN7775wmY_wVoc8US6NQfHmQXADhc5M3xUk6fEuZmKXySZifAWsCiBn-gBziC4rw0aKDzAi0icAXAJMnDAS8sxG1pJSjQS6S2fZyj4EnYkhrGrfeaFmj1UuivI6z3pDXZ_SkV67gbRrC3-1T9d7JWb33l7GinlIms7yVguIcyaYnGMGDmquSd0nEhWSu3REMzY38PigzOa-hJiUYh5VEfTv4BqWxfsLpdc0gg-AdoT6kjh_VOr5jFRP4txkEb2T6XelbWwMgvCW6HOX8EGDDvYqXslajN0HhoBc0tn60ANCmqA_sNZ78AymMaIyOxKFg",
             methodArn="arn:aws:execute-api:us-east-1:112646120612:2qoob0tpqb/prod/GET/plans/123",
         ),
         context={},
