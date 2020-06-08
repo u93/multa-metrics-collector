@@ -2,7 +2,9 @@ from aws_cdk import core
 from multacdkrecipies import (
     AwsApiGatewayLambdaFanOutBE,
     AwsApiGatewayLambdaPipes,
-    AwsIotAnalyticsSimplePipeline,
+    AwsIotAnalyticsDataWorkflow,
+    AwsIotRulesLambdaPipes,
+    AwsIotRulesSqsPipes,
     AwsLambdaFunctionsCluster,
     AwsLambdaLayerVenv,
     AwsS3BucketsCluster,
@@ -11,7 +13,7 @@ from multacdkrecipies import (
 )
 
 from src.infrastructure.configs import (
-    analytics_cold_path_config,
+    analytics_config,
     base_configs,
     serverless_rest_api_configs,
     user_backend_config,
@@ -97,6 +99,14 @@ class UserBackendStack(core.Stack):
             configuration=config["config"]["USER_BACKEND"],
         )
 
+        self._user_serverless_backend.authorizer_function.add_environment(
+            "USER_POOL_ID", self._user_serverless_backend.user_pool.user_pool_id
+        )
+        self._user_serverless_backend.authorizer_function.add_environment("USER_POOL_REGION", self.region)
+        self._user_serverless_backend.authorizer_function.add_environment(
+            "KEYS_URL", f"https://cognito-idp.{self.region}.amazonaws.com/{self._user_serverless_backend.user_pool.user_pool_id}/.well-known/jwks.json"
+        )
+
     def lambda_authorizer_arn(self):
         return self._user_serverless_backend.authorizer_function.function_arn
 
@@ -130,17 +140,7 @@ class UserApisBackend(core.Stack):
         )
 
 
-class AnalyticsHotPathStack(core.Stack):
-    """
-    Hot Analytics Stack for MultaMetrics Backend. Will contain resources necessary for a rapid ingestion and
-    representation of data.
-    """
-
-    def __init__(self, scope: core.Construct, id: str, config=None, **kwargs) -> None:
-        super().__init__(scope, id, **kwargs)
-
-
-class AnalyticsColdPathStack(core.Stack):
+class AnalyticsStack(core.Stack):
     """
     Cold Analytics Stack for MultaMetrics Backend. Will contain resources necessary for a storage, ingestion and
     analysis and representation of timeseries data.
@@ -150,20 +150,41 @@ class AnalyticsColdPathStack(core.Stack):
         super().__init__(scope, id, **kwargs)
         self._fan_out_api_lambdalayer = AwsLambdaLayerVenv(
             self,
-            id=f"AnalyticsColdPath-LambdaLayer-{config['environ']}",
+            id=f"AnalyticsPath-LambdaLayer-{config['environ']}",
             prefix="multa_backend",
             environment=config["environ"],
             configuration=config["config"]["ANALYTICS_FAN_OUT_LAMBDA_LAYER"],
         )
         layer_arn = self._fan_out_api_lambdalayer.lambda_layer.layer_version_arn
 
+        config["config"]["ANALYTICS_FAN_OUT_API"]["api"]["authorizer_function"]["origin"]["layers"].append(layer_arn)
         for function in config["config"]["ANALYTICS_FAN_OUT_API"]["functions"]:
             function["layers"].append(layer_arn)
-        config["config"]["ANALYTICS_FAN_OUT_API"]["api"]["authorizer_function"]["origin"]["layers"].append(layer_arn)
+        for lambda_function in config["config"]["ANALYTICS_INGESTION_ENGINE"]["lambda_handlers"]:
+            lambda_function["layers"].append(layer_arn)
+
+        for index, pipeline_definition in enumerate(config["config"]["ANALYTICS_INGESTION_PIPELINES"]):
+            pipeline = AwsIotAnalyticsDataWorkflow(
+                self,
+                id=f"AnalyticsPath-IngestionEngine-{index}-{config['environ']}",
+                prefix="multa_backend",
+                environment=config["environ"],
+                configuration=pipeline_definition,
+            )
+            for lambda_function in config["config"]["ANALYTICS_INGESTION_ENGINE"]["lambda_handlers"]:
+                lambda_function["environment_vars"][f"IOT_ANALYTICS_CHANNEL_{index}"] = pipeline.channel.channel_name
+
+        ingestion_engine = AwsIotRulesSqsPipes(
+            self,
+            id=f"AnalyticsPath-IngestionEngine-{config['environ']}",
+            prefix="multa_backend",
+            environment=config["environ"],
+            configuration=config["config"]["ANALYTICS_INGESTION_ENGINE"],
+        )
 
         fan_out_api = AwsApiGatewayLambdaFanOutBE(
             self,
-            id=f"AnalyticsColdPath-{config['environ']}",
+            id=f"AnalyticsPath-ConsumerAPI{config['environ']}",
             prefix="multa_backend",
             environment=config["environ"],
             configuration=config["config"]["ANALYTICS_FAN_OUT_API"],
@@ -192,9 +213,9 @@ for environment, configuration in serverless_rest_api_configs.SERVERLESS_REST_AP
     config = dict(environ=environment, config=configuration)
     UserApisBackend(app, id=f"UserApisBackend-{environment}", config=config)
 
-for environment, configuration in analytics_cold_path_config.ANALYTICS_COLD_PATH_CONFIGS.items():
+for environment, configuration in analytics_config.ANALYTICS_CONFIGS.items():
     config = dict(environ=environment, config=configuration)
-    AnalyticsColdPathStack(app, id=f"AnalyticsColdPathStack-{environment}", config=config)
+    AnalyticsStack(app, id=f"AnalyticsStack-{environment}", config=config)
 
 
 app.synth()
