@@ -1,13 +1,13 @@
 ANALYTICS_CONFIGS = {
     "dev": {
         "ANALYTICS_FAN_OUT_LAMBDA_LAYER": {
-            "identifier": "analytics_fan_out_cold",
-            "layer_name": "analytics_fan_out_cold_parameters_venv_layer",
+            "identifier": "analytics_venv",
+            "layer_name": "analytics_venv_layer",
             "description": "Lambda Layer containing local Python's Virtual Environment.",
             "layer_runtimes": ["PYTHON_3_7"],
         },
         "ANALYTICS_FAN_OUT_SSM": {
-            "name": "analytics_fan_out_cold_parameters",
+            "name": "analytics_parameters",
             "description": "Parameters used by Analytics Fan Out API functions and resources.",
             "string_value": {"TEST": True},
         },
@@ -19,7 +19,7 @@ ANALYTICS_CONFIGS = {
             "lambda_handlers": [
                 {
                     "lambda_name": "analytics_metrics_ingestion_handler",
-                    "description": "Lambda Function that will handle RAM Analysis logic for Cold Analytics.",
+                    "description": "Lambda Function that will handle ingestion of IoT Reported metrics.",
                     "code_path": "./src/functions/",
                     "runtime": "PYTHON_3_7",
                     "handler": "analytics_metrics_ingestion.lambda_handler",
@@ -38,6 +38,29 @@ ANALYTICS_CONFIGS = {
                 "sql": "SELECT *, topic(3) AS serial_number FROM '$aws/things/+/shadow/update/documents'",
                 "aws_iot_sql_version": "2016-03-23"
             }
+        },
+        "ANALYTICS_CONNECTIVITY_INGESTION_ENGINE": {
+            "cloudwatch_rule": {
+                "rule_name": "connectivity_collector",
+                "description": "Cloudwatch Rule that will activate for Data Collection - Connectivity",
+                "enabled": True,
+                "schedule": "0/2 * * * ? *"
+            },
+            "lambda_handlers": [
+                {
+                    "lambda_name": "analytics_connectivity_ingestion_handler",
+                    "description": "Lambda Function that will ingestion of Connectivity for Cold Metrics.",
+                    "code_path": "./src/functions/",
+                    "runtime": "PYTHON_3_7",
+                    "handler": "analytics_connectivity_ingestion.lambda_handler",
+                    "layers": [],
+                    "timeout": 10,
+                    "environment_vars": {
+                        "ENVIRONMENT": "dev",
+                    },
+                    "iam_actions": ["*"],
+                },
+            ],
         },
         "ANALYTICS_INGESTION_PIPELINES": [
             {
@@ -109,7 +132,7 @@ ANALYTICS_CONFIGS = {
                         "description": "Lambda Function that will Authorize request made by API Gateway in the project.",
                         "code_path": "./src/functions/",
                         "runtime": "PYTHON_3_7",
-                        "handler": "authorizer.lambda_handler",
+                        "handler": "serverless_backend_authorizer.lambda_handler",
                         "layers": [],
                         "timeout": 10,
                         "environment_vars": {"ENVIRONMENT": "dev"},

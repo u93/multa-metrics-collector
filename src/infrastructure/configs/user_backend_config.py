@@ -18,7 +18,7 @@ USER_BACKEND_CONFIGS = {
                     "description": "Lambda Function that will Authorize request made by API Gateway in the project.",
                     "code_path": "./src/functions/",
                     "runtime": "PYTHON_3_7",
-                    "handler": "authorizer.lambda_handler",
+                    "handler": "serverless_backend_authorizer.lambda_handler",
                     "layers": [],
                     "timeout": 10,
                     "environment_vars": {

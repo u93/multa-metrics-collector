@@ -111,6 +111,7 @@ def lambda_handler(event, context):
     logger.info("Client token: " + event["authorizationToken"])
     logger.info("Method ARN: " + event["methodArn"])
 
+    token_prefix = event["authorizationToken"].split(" ")[0]
     token_value = event["authorizationToken"].split(" ")[1]
     """
     Validate the incoming token and produce the principal user 
@@ -120,15 +121,16 @@ def lambda_handler(event, context):
     2. Decode a JWT token inline
     3. Lookup in a self-managed DB
     """
-    try:
-        unverified_claims = jwt.get_unverified_claims(token_value)
-        logger.info(unverified_claims)
-        principal_id = jwt.get_unverified_claims(token_value).get("cognito:username")
-        logger.info(principal_id)
-    except Exception:
-        logger.error("Error decoding token... Probably is malformed")
-        logger.error(traceback.format_exc())
-        principal_id = None
+    principal_id = None
+    if token_prefix == "ServiceToken":
+        principal_id = "service"
+    else:
+        try:
+            unverified_claims = jwt.get_unverified_claims(token_value)
+            logger.info(unverified_claims)
+            principal_id = jwt.get_unverified_claims(token_value).get("cognito:username")
+        except Exception:
+            logger.error("Error decoding token... Probably is malformed")
 
     """
     You can send a 401 Unauthorized response to the client by failing like so:
@@ -167,25 +169,31 @@ def lambda_handler(event, context):
 
         # ADD SERVICE TOKEN VALIDATION
         current_service_tokens_values = get_service_tokens()
-        current_user_info = validate_token(access_token=token_value)
-        if token_value in current_service_tokens_values:
-            logger.info(f"Allowing all methods for {token_value}")
+        if token_prefix == "ServiceToken" and token_value in current_service_tokens_values:
+            logger.info(f"Allowing all methods for Service Token {token_value}")
             policy.allow_all_methods()
-
-        # ADD USER TOKEN VALIDATION
-        elif isinstance(current_user_info, str) is True:
-            user_authorization = is_authorized(current_path=resource_path, user_id=current_user_info)
-            if bool(user_authorization) is True:
-                logger.info(f"Allowing all methods for {token_value}")
-                policy.allow_all_methods()
-            else:
-                logger.error(f"Denying all methods for {token_value}")
-                policy.deny_all_methods()
-
-        # IF EVERYTHING FAILS DENY ALL METHODS
         else:
-            logger.error(f"Denying all methods for {token_value}")
-            policy.deny_all_methods()
+            logger.info(f"Token received is not a Service Token... Validating...")
+            try:
+                current_user_info = validate_token(access_token=token_value)
+            except Exception:
+                logger.error("Error validating received token...")
+                policy.deny_all_methods()
+            else:
+                # ADD USER TOKEN VALIDATION
+                if isinstance(current_user_info, str) is True:
+                    user_authorization = is_authorized(current_path=resource_path, user_id=current_user_info)
+                    if bool(user_authorization) is True:
+                        logger.info(f"Allowing all methods for {token_value}")
+                        policy.allow_all_methods()
+                    else:
+                        logger.error(f"Denying all methods for {token_value}")
+                        policy.deny_all_methods()
+
+                # IF EVERYTHING FAILS DENY ALL METHODS
+                else:
+                    logger.error(f"Denying all methods for {token_value}")
+                    policy.deny_all_methods()
 
     """
     policy.allowMethod(HttpVerb.GET, "/pets/*")
@@ -202,8 +210,6 @@ def lambda_handler(event, context):
     # context['obj'] = {'foo':'bar'} <- also invalid
 
     auth_response["context"] = context
-    logger.info(logger)
-
     return auth_response
 
 
@@ -396,7 +402,7 @@ class AuthPolicy(object):
 if __name__ == "__main__":
     response = lambda_handler(
         event=dict(
-            authorizationToken="Token eyJraWQiOiJBUTcrbDNJT2ZGZzhjSHN5dDExMlwvR3BSWEM4VHV4SUtiK1pqSGd2MFpmcz0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhNDE5ZGRjYy1jYjU3LTQ4ODctOGQyNC04MTZlMzY0YjNjOTIiLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb21cL3VzLWVhc3QtMV9EdFdTMGpZbjgiLCJjb2duaXRvOnVzZXJuYW1lIjoiYTQxOWRkY2MtY2I1Ny00ODg3LThkMjQtODE2ZTM2NGIzYzkyIiwiZ2l2ZW5fbmFtZSI6IkV1Z2VuaW8iLCJhdWQiOiI1dXY5ZWEwbXI2MjJsdjc2dnBxaGpjdm9oIiwiZXZlbnRfaWQiOiIxMTU2Nzc3MC1iNWQxLTQwMGQtODQ3MC04MDA4YThkMDU4ZDkiLCJ1cGRhdGVkX2F0IjoxNTkwMjY2NjQ3NjQ2LCJ0b2tlbl91c2UiOiJpZCIsImF1dGhfdGltZSI6MTU5MTU4NjcxOCwicGhvbmVfbnVtYmVyIjoiKzE3ODY2NzU4MDU0IiwiZXhwIjoxNTkxNTkwMzE5LCJpYXQiOjE1OTE1ODY3MTksImZhbWlseV9uYW1lIjoiQnJlaWpvIiwiZW1haWwiOiJlZWJmMTk5M0BnbWFpbC5jb20ifQ.WtvoyAK5tbr-ACYs7VZI1GVN7775wmY_wVoc8US6NQfHmQXADhc5M3xUk6fEuZmKXySZifAWsCiBn-gBziC4rw0aKDzAi0icAXAJMnDAS8sxG1pJSjQS6S2fZyj4EnYkhrGrfeaFmj1UuivI6z3pDXZ_SkV67gbRrC3-1T9d7JWb33l7GinlIms7yVguIcyaYnGMGDmquSd0nEhWSu3REMzY38PigzOa-hJiUYh5VEfTv4BqWxfsLpdc0gg-AdoT6kjh_VOr5jFRP4txkEb2T6XelbWwMgvCW6HOX8EGDDvYqXslajN0HhoBc0tn60ANCmqA_sNZ78AymMaIyOxKFg",
+            authorizationToken="Token eyJraWQiOiJBUTcrbDNJT2ZGZzhjSHN5dDExMlwvR3BSWEM4VHV4SUtiK1pqSGd2MFpmcz0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhNDE5ZGRjYy1jYjU3LTQ4ODctOGQyNC04MTZlMzY0YjNjOTIiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6XC9cL2NvZ25pdG8taWRwLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tXC91cy1lYXN0LTFfRHRXUzBqWW44IiwicGhvbmVfbnVtYmVyX3ZlcmlmaWVkIjpmYWxzZSwiY29nbml0bzp1c2VybmFtZSI6ImE0MTlkZGNjLWNiNTctNDg4Ny04ZDI0LTgxNmUzNjRiM2M5MiIsImdpdmVuX25hbWUiOiJFdWdlbmlvIiwiYXVkIjoiNXV2OWVhMG1yNjIybHY3NnZwcWhqY3ZvaCIsImV2ZW50X2lkIjoiYmIyY2U5NDctZDg4Yi00NDAxLWFlZTYtMDA0ZDEzOWNkMDYxIiwidXBkYXRlZF9hdCI6MTU5MDI2NjY0NzY0NiwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE1OTE3NTc1MTQsInBob25lX251bWJlciI6IisxNzg2Njc1ODA1NCIsImV4cCI6MTU5MTc2MTExNSwiaWF0IjoxNTkxNzU3NTE1LCJmYW1pbHlfbmFtZSI6IkJyZWlqbyIsImVtYWlsIjoiZWViZjE5OTNAZ21haWwuY29tIn0.Lu4oSty2UY1zRcV7KDAVXUIj6ojg53s8od5APAGbPCK_6jiONH9ISEGGY8HXFOQu9akutibPG7sytohthYHSXuG_gcz7jpADPEcqLwx2YNn4sYHqxk0VeLXvgZZZZLqr3Fv6LP6E7_Gkl1_4J442n_L19gi91InK7TM9w04SidaI0JUsJc0wYqjOfLKXfbq30Jrnt7cYP6cMAycMX77pMpMYesh-Z5h2fhlkYjaXvc-JR9lr6Db46IoxC6z74xv_rzlCCC74dQAqG99h_s_--xJlpdBEg1NSn0wjR6VaNgqBFOiGave6CXQEPXfScvtb5O_KRea0ifnqd4JXdgDcAA",
             methodArn="arn:aws:execute-api:us-east-1:112646120612:2qoob0tpqb/prod/GET/plans/123",
         ),
         context={},

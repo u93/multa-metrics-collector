@@ -21,7 +21,9 @@ def lambda_handler(event, context):
     for record in event["Records"]:
         event_list.append(json.loads(record["body"]))
 
-    put_message_status = analytics_handler.batch_put_message(channel_name=IOT_ANALYTICS_CHANNEL_0, messages=event_list)
+    put_message_status = analytics_handler.batch_put_message(
+        channel_name=IOT_ANALYTICS_CHANNEL_0, messages=event_list, analysis="cold_path_metrics"
+    )
     logger.info(put_message_status)
 
     return base_response(status_code=200)

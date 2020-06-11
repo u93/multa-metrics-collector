@@ -13,13 +13,18 @@ logs_handler = Logger()
 logger = logs_handler.get_logger()
 
 
-def parse_iot_analytics_message(data: list):
+def parse_iot_analytics_message(data: list, analysis: str):
     message_list = list()
     try:
+        timestamp = round(time.time())
         for message in data:
-            message_list.append(
-                dict(messageId=str(uuid.uuid4()), payload=json.dumps(get_cold_path_metrics(data=message)))
-            )
+            if analysis == "cold_path_metrics":
+                payload = json.dumps(get_cold_path_metrics(data=message))
+            elif analysis == "connectivity":
+                payload = json.dumps(get_connectivity_metrics(data=message, timestamp=timestamp))
+            else:
+                raise Exception
+            message_list.append(dict(messageId=str(uuid.uuid4()), payload=payload))
     except Exception:
         logger.error("Error parsing IoT Analytics message...")
         logger.error(traceback.format_exc())
@@ -30,6 +35,18 @@ def parse_iot_analytics_message(data: list):
 
 def get_hot_path_metrics(data: dict):
     current_data = data["current"]["state"]["reported"]
+
+
+def get_connectivity_metrics(data: dict, timestamp):
+    response_dict = dict()
+    response_dict["serial_number"] = data["thingName"]
+    response_dict["thing_id"] = data["thingId"]
+    response_dict["thing_type_name"] = data["thingTypeName"]
+    response_dict["connection_status"] = data["connectivity"]["connected"]
+    response_dict["last_updated_timestamp"] = data["connectivity"]["timestamp"]
+    response_dict["timestamp"] = timestamp
+
+    return response_dict
 
 
 def get_cold_path_metrics(data: dict):
@@ -103,10 +120,10 @@ class IotAnalyticsHandler(Sts):
         Sts.__init__(self)
         self.iotanalytics_client = boto3.client("iotanalytics")
 
-    def batch_put_message(self, channel_name, messages: list):
+    def batch_put_message(self, channel_name, messages: list, analysis: str):
         try:
             response = self.iotanalytics_client.batch_put_message(
-                channelName=channel_name, messages=parse_iot_analytics_message(data=messages)
+                channelName=channel_name, messages=parse_iot_analytics_message(data=messages, analysis=analysis)
             )
             return response
         except Exception:
