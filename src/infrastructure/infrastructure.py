@@ -2,8 +2,8 @@ from aws_cdk import core
 from multacdkrecipies import (
     AwsApiGatewayLambdaFanOutBE,
     AwsApiGatewayLambdaPipes,
+    AwsCloudwatchLambdaPipes,
     AwsIotAnalyticsDataWorkflow,
-    AwsIotRulesLambdaPipes,
     AwsIotRulesSqsPipes,
     AwsLambdaFunctionsCluster,
     AwsLambdaLayerVenv,
@@ -173,6 +173,8 @@ class AnalyticsStack(core.Stack):
             )
             for lambda_function in config["config"]["ANALYTICS_INGESTION_ENGINE"]["lambda_handlers"]:
                 lambda_function["environment_vars"][f"IOT_ANALYTICS_CHANNEL_{index}"] = pipeline.channel.channel_name
+            for lambda_function in config["config"]["ANALYTICS_CONNECTIVITY_INGESTION_ENGINE"]["lambda_handlers"]:
+                lambda_function["environment_vars"][f"IOT_ANALYTICS_CHANNEL_{index}"] = pipeline.channel.channel_name
 
         ingestion_engine = AwsIotRulesSqsPipes(
             self,
@@ -180,6 +182,14 @@ class AnalyticsStack(core.Stack):
             prefix="multa_backend",
             environment=config["environ"],
             configuration=config["config"]["ANALYTICS_INGESTION_ENGINE"],
+        )
+
+        connectivity_ingestion_engine = AwsCloudwatchLambdaPipes(
+            self,
+            id=f"AnalyticsPath-ConnectivityIngestionEngine-{config['environ']}",
+            prefix="multa_backend",
+            environment=config["environ"],
+            configuration=config["config"]["ANALYTICS_CONNECTIVITY_INGESTION_ENGINE"],
         )
 
         fan_out_api = AwsApiGatewayLambdaFanOutBE(
