@@ -89,7 +89,15 @@ USER_BACKEND_CONFIGS = {
                     "sms": {"body": "Multa - Your username is {username} and temporary password is {####}."},
                 },
                 "sign_in": {"order": ["email"]},
-                "attributes": {"standard": ["email", "given_name", "family_name", "phone_number", "last_update_time"]},
+                "attributes": {
+                    "standard": [
+                        {"name": "email", "mutable": False, "required": True},
+                        {"name": "given_name", "mutable": False, "required": True},
+                        {"name": "family_name", "mutable": False, "required": True},
+                        {"name": "phone_number", "mutable": False, "required": True},
+                        {"name": "last_update_time", "mutable": False, "required": True},
+                    ]
+                },
                 "app_client": {
                     "enabled": True,
                     "client_name": "users",

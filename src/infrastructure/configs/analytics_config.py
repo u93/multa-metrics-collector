@@ -67,13 +67,55 @@ ANALYTICS_CONFIGS = {
                 "name": "analytics_general_pipeline",
                 "retention_periods": {
                     "datastore": 180,
-                }
+                },
+                "datasets": [
+                    {
+                        "dataset_name": "analytics_general_pipeline_dataset",
+                        "sql_action": {
+                            "sql_query": "SELECT * FROM multa_backend_analytics_general_pipeline_datastore_dev",
+                        },
+                    },
+                    {
+                        "dataset_name": "analytics_general_pipeline_dataset_timedelta",
+                        "sql_action": {
+                            "sql_query": "SELECT * FROM multa_backend_analytics_general_pipeline_datastore_dev",
+                            "delta_time": {
+                                "timestamp_field": "timestamp",
+                                "offset_seconds": 0
+                            }
+                        },
+                        "trigger_action": {
+                            "schedule": "0/15 * * * ? *"
+                        }
+                    }
+                ]
             },
             {
                 "name": "analytics_connectivity_pipeline",
                 "retention_periods": {
                     "datastore": 180,
-                }
+                },
+                "datasets": [
+                    {
+                        "dataset_name": "analytics_connectivity_pipeline_dataset",
+                        "sql_action": {
+                            "sql_query": "SELECT * FROM multa_backend_analytics_connectivity_pipeline_datastore_dev",
+                        },
+                    },
+                    {
+                        "dataset_name": "analytics_connectivity_pipeline_dataset_timedelta",
+                        "sql_action": {
+                            "sql_query": "SELECT * FROM multa_backend_analytics_connectivity_pipeline_datastore_dev",
+                            "delta_time": {
+                                "timestamp_field": "timestamp",
+                                "offset_seconds": 0
+                            }
+                        },
+                        "trigger_action": {
+                            "schedule": "0/15 * * * ? *"
+                        }
+                    }
+                ]
             }
         ],
         "ANALYTICS_FAN_OUT_API": {
