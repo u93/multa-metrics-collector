@@ -1,5 +1,3 @@
-import json
-import os
 import time
 
 from handlers.data_analysis.iot_analytics import IotAnalyticsHandler
