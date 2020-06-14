@@ -173,8 +173,10 @@ class AnalyticsStack(core.Stack):
             )
             for lambda_function in config["config"]["ANALYTICS_INGESTION_ENGINE"]["lambda_handlers"]:
                 lambda_function["environment_vars"][f"IOT_ANALYTICS_CHANNEL_{index}"] = pipeline.channel.channel_name
+                lambda_function["environment_vars"][f"IOT_ANALYTICS_DATASTORE_{index}"] = pipeline.datastore.datastore_name
             for lambda_function in config["config"]["ANALYTICS_CONNECTIVITY_INGESTION_ENGINE"]["lambda_handlers"]:
                 lambda_function["environment_vars"][f"IOT_ANALYTICS_CHANNEL_{index}"] = pipeline.channel.channel_name
+                lambda_function["environment_vars"][f"IOT_ANALYTICS_DATASTORE_{index}"] = pipeline.datastore.datastore_name
 
         ingestion_engine = AwsIotRulesSqsPipes(
             self,

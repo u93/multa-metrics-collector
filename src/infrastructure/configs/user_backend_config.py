@@ -104,6 +104,12 @@ USER_BACKEND_CONFIGS = {
                     "generate_secret": False,
                     "auth_flows": {"custom": True, "refresh_token": True, "user_srp": True},
                 },
+                "identity_pool": {
+                    "identity_pool_name": "users",
+                    "allow_unauth_identities": False,
+                    "unauth_role": {"actions": ["*"], "resources": ["*"]},
+                    "auth_role": {"actions": ["*"], "resources": ["*"]}
+                },
                 "triggers": {
                     "post_confirmation": {
                         "lambda_name": "user_backend_post_confirmation",
