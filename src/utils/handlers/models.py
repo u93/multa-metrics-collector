@@ -6,26 +6,168 @@ import uuid
 from pynamodb.models import Model
 from pynamodb.attributes import (
     UnicodeAttribute,
+    BooleanAttribute,
     NumberAttribute,
     UnicodeSetAttribute,
     UTCDateTimeAttribute,
     ListAttribute,
     MapAttribute,
-    BooleanAttribute
 )
 
 from settings.aws import (
     ORGANIZATIONS_TABLE_NAME,
     PLANS_TABLE_NAME,
     ROLES_TABLE_NAME,
+    SERVICE_TOKENS_TABLE_NAME,
     USERS_TABLE_NAME,
-    SERVICE_TOKENS_TABLE_NAME
 )
 from settings.common import MAX_SIZE_PER_PAGE, SERVICE_TOKEN_BYTES
 from settings.logs import Logger
 
 logs_handler = Logger()
 logger = logs_handler.logger
+
+
+class Organizations(Model):
+    class Meta:
+        table_name = ORGANIZATIONS_TABLE_NAME
+
+    id = UnicodeAttribute(hash_key=True, null=False)
+    setting_id = UnicodeAttribute(range_key=True, null=False)
+    plan = UnicodeAttribute(null=False)
+    owner = UnicodeAttribute(null=False)
+    api_keys = ListAttribute(null=False)
+    is_valid = BooleanAttribute(null=False, default_for_new=True)
+    is_master = BooleanAttribute(null=False, default_for_new=False)
+    creation_time = NumberAttribute(null=False, default_for_new=round(time.time()))
+    billing_time = NumberAttribute(null=True, default_for_new=None)
+    last_updated = NumberAttribute(null=False, default_for_new=round(time.time()))
+
+    @classmethod
+    def create(cls, name: str, plan: str, owner: dict, id_=None):
+        """
+        Can be used to create as well to update (if record ID is passed).
+        :param name: Organization Name
+        :param plan: Plan ID in DynamoDB.
+        :param owner: User ID in DynamoDB.
+        :param id_: Element ID in DynamoDB.
+        :return: Class Instance
+        """
+        cls.validate_table()
+        try:
+            if id_ is None:
+                organization = cls(
+                    id=f"{uuid.uuid4()}##{name}",
+                    plan=plan,
+                    owner=owner,
+                    api_keys=[secrets.token_hex(SERVICE_TOKEN_BYTES)],
+                    creation_time=round(time.time()),
+                    last_updated=round(time.time()),
+                )
+            else:
+                pass
+                # plan = cls(id=id_, conditions=conditions, price=price, last_updated=round(time.time()))
+            plan.save()
+        except Exception:
+            logger.error("Error SAVING new PLAN")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return plan
+
+    def delete_record(self):
+        try:
+            self.delete()
+        except Exception:
+            logger.error("Error DELETING PLAN")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return True
+
+    @classmethod
+    def delete_record_by_id(cls, id_: str):
+        cls.validate_table()
+        try:
+            plans = cls.get_record_by_id(id_=id_)
+            for plan in plans:
+                plan.delete()
+        except Exception:
+            logger.error("Error DELETING PLAN by id")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return True
+
+    @classmethod
+    def get_record_by_id(cls, id_: str):
+        cls.validate_table()
+        try:
+            plan = cls.query(hash_key=id_)
+        except Exception:
+            logger.error("Error QUERYING individual PLANs")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return plan
+
+    @classmethod
+    def get_records(cls, last_evaluated_key=None):
+        cls.validate_table()
+        try:
+            plans = cls.scan(last_evaluated_key=last_evaluated_key, limit=MAX_SIZE_PER_PAGE)
+            plans_last_evaluated_key = plans.last_evaluated_key
+            plans_total = cls.count()
+        except Exception:
+            logger.error("Error SCANNING all PLANs")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return plans, plans_total, plans_last_evaluated_key
+
+    @staticmethod
+    def records_to_dict(records):
+        try:
+            dict_records = [record.to_dict() for record in records]
+        except Exception:
+            logger.error("Error SCANNING all PLANs")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return dict_records
+
+    def update_record(self, **kwargs):
+        self.validate_table()
+        try:
+            action_list = list()
+            for attr, value in kwargs.items():
+                action = getattr(self, attr, None)
+                if action is None:
+                    continue
+                else:
+                    action.set(value)
+            latest_plan = self.update(actions=action_list)
+        except Exception:
+            logger.error("Error UPDATING PLAN record")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return latest_plan
+
+    def to_dict(self):
+        return dict(
+            id=self.id,
+            name=self.id.split("##")[1],
+            conditions=self.conditions.as_dict(),
+            price=self.price.as_dict(),
+            lastUpdated=self.last_updated,
+        )
+
+    @classmethod
+    def validate_table(cls):
+        if not cls.exists():
+            logger.error(f"Table {PLANS_TABLE_NAME} does not exists!")
+            raise Exception
 
 
 class ServiceTokens(Model):
@@ -53,7 +195,7 @@ class ServiceTokens(Model):
                     # TODO: ADD ROLE
                     is_valid=True,
                     created_time=round(time.time()),
-                    last_updated=round(time.time())
+                    last_updated=round(time.time()),
                 )
             else:
                 token = cls(
@@ -62,7 +204,7 @@ class ServiceTokens(Model):
                     # TODO: ADD ROLE
                     is_valid=is_valid,
                     created_time=created_time,
-                    last_updated=round(time.time())
+                    last_updated=round(time.time()),
                 )
             token.save()
         except Exception:
@@ -157,7 +299,7 @@ class ServiceTokens(Model):
             value=self.value,
             isValid=self.is_valid,
             createdTime=self.created_time,
-            lastUpdated=self.last_updated
+            lastUpdated=self.last_updated,
         )
 
     @classmethod
@@ -179,26 +321,26 @@ class Roles(Model):
         table_name = ROLES_TABLE_NAME
 
     id = UnicodeAttribute(hash_key=True, null=False)
+    index = NumberAttribute(null=False)
     logic_groups = ListAttribute(null=False, of=InternalRoleGroup)
     last_updated = NumberAttribute(default_for_new=round(time.time()))
 
     @classmethod
-    def create(cls, name: str, logic_groups: list, id_=None):
+    def create(cls, name: str, index: int, logic_groups: list, id_=None):
         """
         Can be used to create as well to update (if record ID is passed).
         :param name: Plan Name
-        :param logic_groups: Plan conditions that will be shown in the UI
-        :param id_: Element ID in DynamoDB
-        :return: Class Instance
+        :param index: Index to be used by the FE.
+        :param logic_groups: Plan conditions that will be shown in the UI.
+        :param id_: Element ID in DynamoDB.
+        :return: Class Instance.
         """
         cls.validate_table()
         try:
             if id_ is None:
-                role = cls(id=f"{uuid.uuid4()}##{name}", logic_groups=logic_groups, last_updated=round(time.time()))
+                role = cls(id=f"{uuid.uuid4()}##{name}", index=index, logic_groups=logic_groups, last_updated=round(time.time()))
             else:
-                role = cls(
-                    id=id_, logic_groups=logic_groups, last_updated=round(time.time())
-                )
+                role = cls(id=id_, index=index, logic_groups=logic_groups, last_updated=round(time.time()))
             role.save()
         except Exception:
             logger.error("Error SAVING new ROLE")
@@ -235,13 +377,13 @@ class Roles(Model):
     def get_record_by_id(cls, id_: str):
         cls.validate_table()
         try:
-            role = cls.query(hash_key=id_)
+            roles = cls.query(hash_key=id_)
         except Exception:
             logger.error("Error QUERYING individual ROLE")
             logger.error(traceback.format_exc())
             return False
         else:
-            return role
+            return roles
 
     @classmethod
     def get_records(cls, last_evaluated_key=None):
@@ -290,8 +432,9 @@ class Roles(Model):
         return dict(
             id=self.id,
             name=self.id.split("##")[1],
+            index=self.index,
             logic_groups=[logic_group.as_dict() for logic_group in self.logic_groups],
-            lastUpdated=self.last_updated
+            lastUpdated=self.last_updated,
         )
 
     @classmethod
@@ -306,15 +449,17 @@ class Plans(Model):
         table_name = PLANS_TABLE_NAME
 
     id = UnicodeAttribute(hash_key=True, null=False)
+    index = NumberAttribute(null=False)
     conditions = MapAttribute(null=False)
     price = MapAttribute(null=False)
     last_updated = NumberAttribute(default_for_new=round(time.time()))
 
     @classmethod
-    def create(cls, name: str, conditions: dict, price: dict, id_=None):
+    def create(cls, name: str, index:int, conditions: dict, price: dict, id_=None):
         """
         Can be used to create as well to update (if record ID is passed).
         :param name: Plan Name
+        :param index: Index in table for FE to use.
         :param conditions: Plan conditions that will be shown in the UI
         :param id_: Element ID in DynamoDB
         :return: Class Instance
@@ -322,11 +467,11 @@ class Plans(Model):
         cls.validate_table()
         try:
             if id_ is None:
-                plan = cls(id=f"{uuid.uuid4()}##{name}", conditions=conditions, price=price, last_updated=round(time.time()))
-            else:
                 plan = cls(
-                    id=id_, conditions=conditions, price=price, last_updated=round(time.time())
+                    id=f"{uuid.uuid4()}##{name}", index=index, conditions=conditions, price=price, last_updated=round(time.time())
                 )
+            else:
+                plan = cls(id=id_, index=index, conditions=conditions, price=price, last_updated=round(time.time()))
             plan.save()
         except Exception:
             logger.error("Error SAVING new PLAN")
@@ -418,6 +563,7 @@ class Plans(Model):
         return dict(
             id=self.id,
             name=self.id.split("##")[1],
+            index=self.index,
             conditions=self.conditions.as_dict(),
             price=self.price.as_dict(),
             lastUpdated=self.last_updated,

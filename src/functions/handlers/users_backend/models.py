@@ -65,7 +65,8 @@ class Organizations(Model):
                     last_updated=round(time.time()),
                 )
             else:
-                plan = cls(id=id_, conditions=conditions, price=price, last_updated=round(time.time()))
+                pass
+                # plan = cls(id=id_, conditions=conditions, price=price, last_updated=round(time.time()))
             plan.save()
         except Exception:
             logger.error("Error SAVING new PLAN")
@@ -320,24 +321,26 @@ class Roles(Model):
         table_name = ROLES_TABLE_NAME
 
     id = UnicodeAttribute(hash_key=True, null=False)
+    index = NumberAttribute(null=False)
     logic_groups = ListAttribute(null=False, of=InternalRoleGroup)
     last_updated = NumberAttribute(default_for_new=round(time.time()))
 
     @classmethod
-    def create(cls, name: str, logic_groups: list, id_=None):
+    def create(cls, name: str, index: int, logic_groups: list, id_=None):
         """
         Can be used to create as well to update (if record ID is passed).
         :param name: Plan Name
-        :param logic_groups: Plan conditions that will be shown in the UI
-        :param id_: Element ID in DynamoDB
-        :return: Class Instance
+        :param index: Index to be used by the FE.
+        :param logic_groups: Plan conditions that will be shown in the UI.
+        :param id_: Element ID in DynamoDB.
+        :return: Class Instance.
         """
         cls.validate_table()
         try:
             if id_ is None:
-                role = cls(id=f"{uuid.uuid4()}##{name}", logic_groups=logic_groups, last_updated=round(time.time()))
+                role = cls(id=f"{uuid.uuid4()}##{name}", index=index, logic_groups=logic_groups, last_updated=round(time.time()))
             else:
-                role = cls(id=id_, logic_groups=logic_groups, last_updated=round(time.time()))
+                role = cls(id=id_, index=index, logic_groups=logic_groups, last_updated=round(time.time()))
             role.save()
         except Exception:
             logger.error("Error SAVING new ROLE")
@@ -429,6 +432,7 @@ class Roles(Model):
         return dict(
             id=self.id,
             name=self.id.split("##")[1],
+            index=self.index,
             logic_groups=[logic_group.as_dict() for logic_group in self.logic_groups],
             lastUpdated=self.last_updated,
         )
@@ -445,15 +449,17 @@ class Plans(Model):
         table_name = PLANS_TABLE_NAME
 
     id = UnicodeAttribute(hash_key=True, null=False)
+    index = NumberAttribute(null=False)
     conditions = MapAttribute(null=False)
     price = MapAttribute(null=False)
     last_updated = NumberAttribute(default_for_new=round(time.time()))
 
     @classmethod
-    def create(cls, name: str, conditions: dict, price: dict, id_=None):
+    def create(cls, name: str, index:int, conditions: dict, price: dict, id_=None):
         """
         Can be used to create as well to update (if record ID is passed).
         :param name: Plan Name
+        :param index: Index in table for FE to use.
         :param conditions: Plan conditions that will be shown in the UI
         :param id_: Element ID in DynamoDB
         :return: Class Instance
@@ -462,10 +468,10 @@ class Plans(Model):
         try:
             if id_ is None:
                 plan = cls(
-                    id=f"{uuid.uuid4()}##{name}", conditions=conditions, price=price, last_updated=round(time.time())
+                    id=f"{uuid.uuid4()}##{name}", index=index, conditions=conditions, price=price, last_updated=round(time.time())
                 )
             else:
-                plan = cls(id=id_, conditions=conditions, price=price, last_updated=round(time.time()))
+                plan = cls(id=id_, index=index, conditions=conditions, price=price, last_updated=round(time.time()))
             plan.save()
         except Exception:
             logger.error("Error SAVING new PLAN")
@@ -557,6 +563,7 @@ class Plans(Model):
         return dict(
             id=self.id,
             name=self.id.split("##")[1],
+            index=self.index,
             conditions=self.conditions.as_dict(),
             price=self.price.as_dict(),
             lastUpdated=self.last_updated,

@@ -4,6 +4,7 @@
       {
         "id": "5e249517-92cc-4c26-a8fb-233a21b33b4c##admin",
         "name": "admin",
+        "index": 0,
         "logic_groups": [
           {
             "restApiId": "2qoob0tpqb",
@@ -20,7 +21,9 @@
         ]
       },
       {
+        "id": "59e5eb56-7f46-441e-92d2-7b0cbe0d4784##viewer",
         "name": "viewer",
+        "index": 1,
         "logic_groups": [
           {
             "restApiId": "2qoob0tpqb",
