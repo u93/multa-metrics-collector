@@ -24,7 +24,7 @@ USER_BACKEND_CONFIGS = {
                     "environment_vars": {
                         "ENVIRONMENT": "dev",
                         "USER_POOL_ID": "us-east-1_DtWS0jYn8",
-                        "USER_POOL_APP_CLIENT_ID": "5uv9ea0mr622lv76vpqhjcvoh",
+                        "USER_POOL_APP_CLIENT_ID": "alii58041k72hht8gb7r2cgn2",
                         "KEYS_URL": "https://cognito-idp.{region}.amazonaws.com/{user_pool_id}/.well-known/jwks.json",
                         "REGION": "us-east-1"
                     },
@@ -106,7 +106,7 @@ USER_BACKEND_CONFIGS = {
                 },
                 "identity_pool": {
                     "identity_pool_name": "users",
-                    "allow_unauth_identities": False,
+                    "allow_unauth_identities": True,
                     "unauth_role": {"actions": ["*"], "resources": ["*"]},
                     "auth_role": {"actions": ["*"], "resources": ["*"]}
                 },

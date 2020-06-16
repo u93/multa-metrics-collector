@@ -54,6 +54,7 @@ def lambda_handler(event, context):
             )
         role = Roles.create(
             name=role["name"],
+            index=role["index"],
             logic_groups=logic_groups,
         )
 
@@ -71,6 +72,7 @@ def lambda_handler(event, context):
             )
         role = Roles.create(
             id_=modified_role["id"],
+            index=modified_role["index"],
             name=modified_role["name"],
             logic_groups=logic_groups,
         )

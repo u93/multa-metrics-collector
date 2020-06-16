@@ -42,13 +42,14 @@ def lambda_handler(event, context):
 
     # GET NEW PLANS (PLANS WITHOUT ID)
     for plan in desired_new_plans:
-        new_plan = Plans.create(name=plan["name"], conditions=plan["conditions"], price=plan["price"])
+        new_plan = Plans.create(name=plan["name"], index=plan["index"], conditions=plan["conditions"], price=plan["price"])
 
     # GO THRU ALL IN S3, IF EXIST IN DYNAMO -> UPDATE, IF NOT EXIST -> CREATE (USE IDs)
     for modified_plan in modified_plans:
         plan = Plans.create(
             id_=modified_plan["id"],
             name=modified_plan["name"],
+            index=modified_plan["index"],
             conditions=modified_plan["conditions"],
             price=modified_plan["price"]
         )

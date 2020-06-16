@@ -177,7 +177,13 @@ ANALYTICS_CONFIGS = {
                         "handler": "serverless_backend_authorizer.lambda_handler",
                         "layers": [],
                         "timeout": 10,
-                        "environment_vars": {"ENVIRONMENT": "dev"},
+                        "environment_vars": {
+                            "ENVIRONMENT": "dev",
+                            "USER_POOL_ID": "us-east-1_DtWS0jYn8",
+                            "USER_POOL_APP_CLIENT_ID": "alii58041k72hht8gb7r2cgn2",
+                            "KEYS_URL": "https://cognito-idp.{region}.amazonaws.com/{user_pool_id}/.well-known/jwks.json",
+                            "REGION": "us-east-1"
+                        },
                         "iam_actions": ["*"],
                     }
                 },
