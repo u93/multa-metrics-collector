@@ -26,15 +26,22 @@ USER_BACKEND_CONFIGS = {
                         "USER_POOL_ID": "us-east-1_DtWS0jYn8",
                         "USER_POOL_APP_CLIENT_ID": "alii58041k72hht8gb7r2cgn2",
                         "KEYS_URL": "https://cognito-idp.{region}.amazonaws.com/{user_pool_id}/.well-known/jwks.json",
-                        "REGION": "us-east-1"
+                        "REGION": "us-east-1",
+                        "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
+                        "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
+                        "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
                     },
                     "iam_actions": ["*"],
                 }
             },
             "dynamo_tables": [
                 {
-                    "table_name": "organizations",
+                    "table_name": "organization_data",
                     "partition_key": "id",
+                    "sort_key": {
+                        "name": "setting_id",
+                        "type": "string"
+                    },
                     "stream": {"enabled": False,},
                     "billing_mode": "pay_per_request",
                 },
@@ -116,10 +123,16 @@ USER_BACKEND_CONFIGS = {
                         "description": "Lambda Function that will handle Post Confirmation events.",
                         "code_path": "./src/functions/",
                         "runtime": "PYTHON_3_7",
-                        "handler": "post_confirmation_trigger.lambda_handler",
+                        "handler": "serverless_backend_triggers.lambda_handler",
                         "layers": [],
                         "timeout": 10,
-                        "environment_vars": {"ENVIRONMENT": "dev"},
+                        "environment_vars": {
+                            "ENVIRONMENT": "dev",
+                            "DEFAULT_PLAN": "3367dfd3-4909-4117-a434-379b66e71d18##Basic",
+                            "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
+                            "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
+                            "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
+                        },
                         "iam_actions": ["*"],
                     }
                 },

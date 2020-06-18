@@ -1,10 +1,14 @@
 import os
 
-USERS_TABLE_NAME = (os.environ.get("USERS_TABLE_NAME"),)
-ORGANIZATIONS_TABLE_NAME = os.environ.get("ORGANIZATIONS_TABLE_NAME")
+USERS_TABLE_NAME = os.environ.get("USERS_TABLE_NAME")
+ORGANIZATIONS_TABLE_NAME = os.environ.get("ORGANIZATIONS_TABLE_NAME", "multa_backend_organization_data_table_dev")
 PLANS_TABLE_NAME = os.environ.get("PLANS_TABLE_NAME", "multa_backend_account_plans_table_dev")
 ROLES_TABLE_NAME = os.environ.get("ROLES_TABLE_NAME", "multa_backend_user_roles_table_dev")
 SERVICE_TOKENS_TABLE_NAME = os.environ.get("SERVICE_TOKENS_TABLE_NAME", "multa_backend_service_tokens_table_dev")
+
+COGNITO_TRIGGERS = {
+    "POST_CONFIRMATION_CONFIRM_SIGNUP": "PostConfirmation_ConfirmSignUp"
+}
 
 ANALYTICS_LAMBDA_ROUTING_MAPPING = {
     "ram": "multa_backend_analytics_cold_ram_handler_dev",
