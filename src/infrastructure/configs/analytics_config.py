@@ -27,6 +27,7 @@ ANALYTICS_CONFIGS = {
                     "timeout": 10,
                     "environment_vars": {
                         "ENVIRONMENT": "dev",
+                        "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                     },
                     "iam_actions": ["*"],
                 },
@@ -57,6 +58,7 @@ ANALYTICS_CONFIGS = {
                     "timeout": 10,
                     "environment_vars": {
                         "ENVIRONMENT": "dev",
+                        "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                     },
                     "iam_actions": ["*"],
                 },
@@ -128,7 +130,10 @@ ANALYTICS_CONFIGS = {
                     "handler": "analytics_cold_ram.lambda_handler",
                     "layers": [],
                     "timeout": 10,
-                    "environment_vars": {"ENVIRONMENT": "dev"},
+                    "environment_vars": {
+                        "ENVIRONMENT": "dev",
+                        "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
+                    },
                     "iam_actions": ["*"],
                 },
                 {
@@ -139,7 +144,10 @@ ANALYTICS_CONFIGS = {
                     "handler": "analytics_cold_cpu.lambda_handler",
                     "layers": [],
                     "timeout": 10,
-                    "environment_vars": {"ENVIRONMENT": "dev"},
+                    "environment_vars": {
+                        "ENVIRONMENT": "dev",
+                        "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
+                    },
                     "iam_actions": ["*"],
                 },
                 {
@@ -150,7 +158,10 @@ ANALYTICS_CONFIGS = {
                     "handler": "analytics_cold_hdd.lambda_handler",
                     "layers": [],
                     "timeout": 10,
-                    "environment_vars": {"ENVIRONMENT": "dev"},
+                    "environment_vars": {
+                        "ENVIRONMENT": "dev",
+                        "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
+                    },
                     "iam_actions": ["*"],
                 },
                 {
@@ -161,7 +172,10 @@ ANALYTICS_CONFIGS = {
                     "handler": "analytics_cold_connectivity.lambda_handler",
                     "layers": [],
                     "timeout": 10,
-                    "environment_vars": {"ENVIRONMENT": "dev"},
+                    "environment_vars": {
+                        "ENVIRONMENT": "dev",
+                        "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
+                    },
                     "iam_actions": ["*"],
                 },
             ],
@@ -215,7 +229,10 @@ ANALYTICS_CONFIGS = {
                         "handler": "serverless_analytics_router_cold.lambda_handler",
                         "layers": [],
                         "timeout": 10,
-                        "environment_vars": {"ENVIRONMENT": "dev"},
+                        "environment_vars": {
+                            "ENVIRONMENT": "dev",
+                            "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
+                        },
                         "iam_actions": ["*"],
                     },
                 },

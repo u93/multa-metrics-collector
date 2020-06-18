@@ -31,7 +31,12 @@ SERVERLESS_REST_API_CONFIGS = {
                         "handler": "serverless_api_default.lambda_handler",
                         "layers": [],
                         "timeout": 10,
-                        "environment_vars": {"ENVIRONMENT": "dev"},
+                        "environment_vars": {
+                            "ENVIRONMENT": "dev",
+                            "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
+                            "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
+                            "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
+                        },
                         "iam_actions": ["*"],
                     },
                 },
@@ -47,7 +52,12 @@ SERVERLESS_REST_API_CONFIGS = {
                             "handler": "serverless_api_users.lambda_handler",
                             "layers": [],
                             "timeout": 10,
-                            "environment_vars": {"ENVIRONMENT": "dev"},
+                            "environment_vars": {
+                                "ENVIRONMENT": "dev",
+                                "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
+                                "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
+                                "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
+                            },
                             "iam_actions": ["*"],
                         },
                         "child": {
@@ -61,7 +71,12 @@ SERVERLESS_REST_API_CONFIGS = {
                                 "handler": "serverless_api_users.lambda_handler",
                                 "layers": [],
                                 "timeout": 10,
-                                "environment_vars": {"ENVIRONMENT": "dev"},
+                                "environment_vars": {
+                                    "ENVIRONMENT": "dev",
+                                    "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
+                                    "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
+                                    "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
+                                },
                                 "iam_actions": ["*"],
                             },
                             # "childs": [
@@ -94,7 +109,12 @@ SERVERLESS_REST_API_CONFIGS = {
                             "handler": "serverless_api_plans.lambda_handler",
                             "layers": [],
                             "timeout": 10,
-                            "environment_vars": {"ENVIRONMENT": "dev"},
+                            "environment_vars": {
+                                "ENVIRONMENT": "dev",
+                                "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
+                                "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
+                                "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
+                            },
                             "iam_actions": ["*"],
                         },
                         "child": {
@@ -108,7 +128,12 @@ SERVERLESS_REST_API_CONFIGS = {
                                 "handler": "serverless_api_plans.lambda_handler",
                                 "layers": [],
                                 "timeout": 10,
-                                "environment_vars": {"ENVIRONMENT": "dev"},
+                                "environment_vars": {
+                                    "ENVIRONMENT": "dev",
+                                    "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
+                                    "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
+                                    "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
+                                },
                                 "iam_actions": ["*"],
                             },
                         },
@@ -124,7 +149,12 @@ SERVERLESS_REST_API_CONFIGS = {
                             "handler": "serverless_api_roles.lambda_handler",
                             "layers": [],
                             "timeout": 10,
-                            "environment_vars": {"ENVIRONMENT": "dev"},
+                            "environment_vars": {
+                                "ENVIRONMENT": "dev",
+                                "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
+                                "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
+                                "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
+                            },
                             "iam_actions": ["*"],
                         },
                         "child": {
@@ -138,7 +168,12 @@ SERVERLESS_REST_API_CONFIGS = {
                                 "handler": "serverless_api_roles.lambda_handler",
                                 "layers": [],
                                 "timeout": 10,
-                                "environment_vars": {"ENVIRONMENT": "dev"},
+                                "environment_vars": {
+                                    "ENVIRONMENT": "dev",
+                                    "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
+                                    "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
+                                    "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
+                                },
                                 "iam_actions": ["*"],
                             },
                         },
