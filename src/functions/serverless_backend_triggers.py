@@ -1,10 +1,10 @@
 import os
 import traceback
 
-from handlers.users_backend.models import Organizations
+from handlers.users_backend.models import Organizations, Users, UserOrganizationRelation
 from settings.aws import COGNITO_TRIGGERS
 from settings.logs import Logger
-from settings.models import DEFAULT_PLAN
+from settings.models import DEFAULT_SIGNUP_PLAN, DEFAULT_SIGNUP_ROLE
 
 logs_handler = Logger()
 logger = logs_handler.get_logger()
@@ -18,16 +18,28 @@ def post_confirmation_signup(event):
 
         client_metadata = event["request"]["clientMetadata"]
         organization_name = client_metadata.get("organization_name")
+        user_role = client_metadata.get("role", DEFAULT_SIGNUP_ROLE)
 
         if organization_name is None:
             # ADD ERROR VALIDATION FOR TRIGGER RESPONSE
             pass
         organization = Organizations.create(
             name=organization_name,
-            plan=DEFAULT_PLAN,
-            owner=cognito_user_email
+            plan=DEFAULT_SIGNUP_PLAN,
+            owner=cognito_username
+        )
+        user_organization_mapping = UserOrganizationRelation.create(
+            user_id=cognito_username,
+            organization_id=organization.id
+        )
+        user_settings = Users.create(
+            organization_id=organization.id,
+            user_id=cognito_username,
+            role=user_role
         )
         logger.info(organization.to_dict())
+        logger.info(user_organization_mapping.to_dict())
+        logger.info(user_settings.to_dict())
     except Exception:
         logger.error(f"Error creating organization with owner {cognito_username}")
         logger.error(traceback.format_exc())

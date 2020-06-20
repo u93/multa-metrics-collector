@@ -10,7 +10,7 @@
             "restApiId": "2qoob0tpqb",
             "stage": "prod",
             "method": "GET",
-            "resources": ["users", "plans", "roles", "organizations"]
+            "resources": ["users", "plans", "roles", "organizations", "current-info"]
           },
           {
             "restApiId": "2qoob0tpqb",
@@ -29,7 +29,7 @@
             "restApiId": "2qoob0tpqb",
             "stage": "prod",
             "method": "GET",
-            "resources": ["users", "plans", "roles"]
+            "resources": ["users", "plans", "roles", "current-info"]
           }
         ]
       }

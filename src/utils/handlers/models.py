@@ -23,6 +23,7 @@ from settings.aws import (
 )
 from settings.common import MAX_SIZE_PER_PAGE, SERVICE_TOKEN_BYTES
 from settings.logs import Logger
+from settings.models import COMPONENT_IDS
 
 logs_handler = Logger()
 logger = logs_handler.logger
@@ -34,52 +35,71 @@ class Organizations(Model):
 
     id = UnicodeAttribute(hash_key=True, null=False)
     setting_id = UnicodeAttribute(range_key=True, null=False)
+    element_id = UnicodeAttribute(null=False)
+    name = UnicodeAttribute(null=False)
     plan = UnicodeAttribute(null=False)
     owner = UnicodeAttribute(null=False)
-    api_keys = ListAttribute(null=False)
+    # api_keys = ListAttribute(null=False)
     is_valid = BooleanAttribute(null=False, default_for_new=True)
-    is_master = BooleanAttribute(null=False, default_for_new=False)
     creation_time = NumberAttribute(null=False, default_for_new=round(time.time()))
     billing_time = NumberAttribute(null=True, default_for_new=None)
     last_updated = NumberAttribute(null=False, default_for_new=round(time.time()))
 
     @classmethod
-    def create(cls, name: str, plan: str, owner: dict, id_=None):
+    def create(cls, name: str, plan: str, owner: dict, organization_id=None, billing_time=None, is_valid=True):
         """
         Can be used to create as well to update (if record ID is passed).
         :param name: Organization Name
         :param plan: Plan ID in DynamoDB.
         :param owner: User ID in DynamoDB.
-        :param id_: Element ID in DynamoDB.
+        :param organization_id: Element ID in DynamoDB.
+        :param billing_time:
+        :param is_valid:
         :return: Class Instance
         """
         cls.validate_table()
         try:
-            if id_ is None:
+            if organization_id is None:
+                organization_id = str(uuid.uuid4())
                 organization = cls(
-                    id=f"{uuid.uuid4()}##{name}",
+                    id=organization_id,
+                    setting_id=COMPONENT_IDS["ORGANIZATION"],
+                    element_id=organization_id,
+                    name=name,
                     plan=plan,
                     owner=owner,
-                    api_keys=[secrets.token_hex(SERVICE_TOKEN_BYTES)],
+                    is_valid=is_valid,
+                    # api_keys=[secrets.token_hex(SERVICE_TOKEN_BYTES)],
                     creation_time=round(time.time()),
                     last_updated=round(time.time()),
+                    billing_time=billing_time
                 )
             else:
-                pass
-                # plan = cls(id=id_, conditions=conditions, price=price, last_updated=round(time.time()))
-            plan.save()
+                organization = cls(
+                    id=organization_id,
+                    setting_id=COMPONENT_IDS["ORGANIZATION"],
+                    element_id=str(uuid.uuid4()),
+                    plan=plan,
+                    owner=owner,
+                    is_valid=is_valid,
+                    # api_keys=[secrets.token_hex(SERVICE_TOKEN_BYTES)],
+                    creation_time=round(time.time()),
+                    last_updated=round(time.time()),
+                    billing_time=billing_time
+                )
+            organization.save()
         except Exception:
-            logger.error("Error SAVING new PLAN")
+            logger.error("Error SAVING new ORGANIZATION")
             logger.error(traceback.format_exc())
             return False
         else:
-            return plan
+            return organization
 
     def delete_record(self):
         try:
             self.delete()
         except Exception:
-            logger.error("Error DELETING PLAN")
+            logger.error("Error DELETING ORGANIZATION")
             logger.error(traceback.format_exc())
             return False
         else:
@@ -89,11 +109,11 @@ class Organizations(Model):
     def delete_record_by_id(cls, id_: str):
         cls.validate_table()
         try:
-            plans = cls.get_record_by_id(id_=id_)
-            for plan in plans:
-                plan.delete()
+            organizations = cls.get_record_by_id(id_=id_)
+            for organization in organizations:
+                organization.delete()
         except Exception:
-            logger.error("Error DELETING PLAN by id")
+            logger.error("Error DELETING ORGANIZATION by id")
             logger.error(traceback.format_exc())
             return False
         else:
@@ -103,34 +123,34 @@ class Organizations(Model):
     def get_record_by_id(cls, id_: str):
         cls.validate_table()
         try:
-            plan = cls.query(hash_key=id_)
+            organization = cls.query(hash_key=id_)
         except Exception:
-            logger.error("Error QUERYING individual PLANs")
+            logger.error("Error QUERYING individual ORGANIZATIONS")
             logger.error(traceback.format_exc())
             return False
         else:
-            return plan
+            return organization
 
     @classmethod
     def get_records(cls, last_evaluated_key=None):
         cls.validate_table()
         try:
-            plans = cls.scan(last_evaluated_key=last_evaluated_key, limit=MAX_SIZE_PER_PAGE)
-            plans_last_evaluated_key = plans.last_evaluated_key
-            plans_total = cls.count()
+            organizations = cls.scan(last_evaluated_key=last_evaluated_key, limit=MAX_SIZE_PER_PAGE)
+            organizations_last_evaluated_key = organizations.last_evaluated_key
+            organizations_total = cls.count()
         except Exception:
             logger.error("Error SCANNING all PLANs")
             logger.error(traceback.format_exc())
             return False
         else:
-            return plans, plans_total, plans_last_evaluated_key
+            return organizations, organizations_last_evaluated_key, organizations_total
 
     @staticmethod
     def records_to_dict(records):
         try:
             dict_records = [record.to_dict() for record in records]
         except Exception:
-            logger.error("Error SCANNING all PLANs")
+            logger.error("Error SCANNING all ORGANIZATIONS")
             logger.error(traceback.format_exc())
             return False
         else:
@@ -148,7 +168,7 @@ class Organizations(Model):
                     action.set(value)
             latest_plan = self.update(actions=action_list)
         except Exception:
-            logger.error("Error UPDATING PLAN record")
+            logger.error("Error UPDATING ORGANIZATION record")
             logger.error(traceback.format_exc())
             return False
         else:
@@ -157,16 +177,285 @@ class Organizations(Model):
     def to_dict(self):
         return dict(
             id=self.id,
-            name=self.id.split("##")[1],
-            conditions=self.conditions.as_dict(),
-            price=self.price.as_dict(),
+            name=self.name,
+            settingId=self.setting_id,
+            elementId=self.element_id,
+            plan=self.plan,
+            owner=self.owner,
+            # api_keys=self.api_keys,
+            creationTime=self.creation_time,
+            lastUpdated=self.last_updated,
+            billingTime=self.billing_time,
+        )
+
+    @classmethod
+    def validate_table(cls):
+        if not cls.exists():
+            logger.error(f"Table {ORGANIZATIONS_TABLE_NAME} does not exists!")
+            raise Exception
+
+
+class Users(Model):
+    class Meta:
+        table_name = ORGANIZATIONS_TABLE_NAME
+
+    id = UnicodeAttribute(hash_key=True, null=False)
+    setting_id = UnicodeAttribute(range_key=True, null=False)
+    element_id = UnicodeAttribute(null=False)
+    role = UnicodeAttribute(null=False)
+    is_valid = BooleanAttribute(null=False, default_for_new=True)
+    creation_time = NumberAttribute(null=False, default_for_new=round(time.time()))
+    last_updated = NumberAttribute(null=False, default_for_new=round(time.time()))
+
+    @classmethod
+    def create(cls, user_id: str, role: str, organization_id: str, is_valid=True):
+        """
+        Can be used to create as well to update (if record ID is passed).
+        :param user_id: Cognito User ID.
+        :param role: Plan ID in DynamoDB.
+        :param organization_id: Element ID in DynamoDB.
+        :param is_valid:
+        :return: Class Instance
+        """
+        cls.validate_table()
+        try:
+            user = cls(
+                id=organization_id,
+                setting_id=f"{COMPONENT_IDS['USER']}##{user_id}",
+                element_id=user_id,
+                role=role,
+                is_valid=is_valid,
+                creation_time=round(time.time()),
+                last_updated=round(time.time()),
+            )
+            user.save()
+        except Exception:
+            logger.error("Error SAVING new USER")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return user
+
+    def delete_record(self):
+        try:
+            self.delete()
+        except Exception:
+            logger.error("Error DELETING USER")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return True
+
+    @classmethod
+    def delete_record_by_id(cls, id_: str):
+        cls.validate_table()
+        try:
+            users = cls.get_record_by_id(id_=id_)
+            for user in users:
+                user.delete()
+        except Exception:
+            logger.error("Error DELETING USER by id")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return True
+
+    @classmethod
+    def get_record_by_id(cls, id_: str):
+        cls.validate_table()
+        try:
+            user = cls.query(hash_key=id_)
+        except Exception:
+            logger.error("Error QUERYING individual USER")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return user
+
+    @classmethod
+    def get_records(cls, last_evaluated_key=None):
+        cls.validate_table()
+        try:
+            users = cls.scan(last_evaluated_key=last_evaluated_key, limit=MAX_SIZE_PER_PAGE)
+            users_last_evaluated_key = users.last_evaluated_key
+            users_total = cls.count()
+        except Exception:
+            logger.error("Error SCANNING all USERs")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return users, users_last_evaluated_key, users_total
+
+    @staticmethod
+    def records_to_dict(records):
+        try:
+            dict_records = [record.to_dict() for record in records]
+        except Exception:
+            logger.error("Error SCANNING all USERs")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return dict_records
+
+    def update_record(self, **kwargs):
+        self.validate_table()
+        try:
+            action_list = list()
+            for attr, value in kwargs.items():
+                action = getattr(self, attr, None)
+                if action is None:
+                    continue
+                else:
+                    action.set(value)
+            latest_plan = self.update(actions=action_list)
+        except Exception:
+            logger.error("Error UPDATING USER record")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return latest_plan
+
+    def to_dict(self):
+        return dict(
+            id=self.element_id,
+            organizationId=self.id,
+            settingId=self.setting_id,
+            role=self.role,
+            creationTime=self.creation_time,
             lastUpdated=self.last_updated,
         )
 
     @classmethod
     def validate_table(cls):
         if not cls.exists():
-            logger.error(f"Table {PLANS_TABLE_NAME} does not exists!")
+            logger.error(f"Table {ORGANIZATIONS_TABLE_NAME} does not exists!")
+            raise Exception
+
+
+class UserOrganizationRelation(Model):
+    class Meta:
+        table_name = USERS_TABLE_NAME
+
+    id = UnicodeAttribute(hash_key=True, null=False)
+    organization_id = UnicodeAttribute(null=False)
+    creation_time = NumberAttribute(null=False, default_for_new=round(time.time()))
+    last_updated = NumberAttribute(null=False, default_for_new=round(time.time()))
+
+    @classmethod
+    def create(cls, user_id: str, organization_id: str):
+        """
+        Can be used to create as well to update (if record ID is passed).
+        :param user_id: User ID in Cognito.
+        :param organization_id: Organization ID in DynamoDB.
+        :return: Class Instance
+        """
+        cls.validate_table()
+        try:
+            user = cls(
+                id=user_id,
+                organization_id=organization_id,
+                creation_time=round(time.time()),
+                last_updated=round(time.time()),
+            )
+            user.save()
+        except Exception:
+            logger.error("Error SAVING new USER ORGANIZATION RELATION")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return user
+
+    def delete_record(self):
+        try:
+            self.delete()
+        except Exception:
+            logger.error("Error DELETING USER ORGANIZATION RELATION")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return True
+
+    @classmethod
+    def delete_record_by_id(cls, id_: str):
+        cls.validate_table()
+        try:
+            users = cls.get_record_by_id(id_=id_)
+            for user in users:
+                user.delete()
+        except Exception:
+            logger.error("Error DELETING USER ORGANIZATION RELATION by id")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return True
+
+    @classmethod
+    def get_record_by_id(cls, id_: str):
+        cls.validate_table()
+        try:
+            user = cls.query(hash_key=id_)
+        except Exception:
+            logger.error("Error QUERYING individual USER ORGANIZATION RELATION")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return user
+
+    @classmethod
+    def get_records(cls, last_evaluated_key=None):
+        cls.validate_table()
+        try:
+            users = cls.scan(last_evaluated_key=last_evaluated_key, limit=MAX_SIZE_PER_PAGE)
+            users_last_evaluated_key = users.last_evaluated_key
+            users_total = cls.count()
+        except Exception:
+            logger.error("Error SCANNING all USER ORGANIZATION RELATIONs")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return users, users_last_evaluated_key, users_total
+
+    @staticmethod
+    def records_to_dict(records):
+        try:
+            dict_records = [record.to_dict() for record in records]
+        except Exception:
+            logger.error("Error SCANNING all USER ORGANIZATION RELATIONs")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return dict_records
+
+    def update_record(self, **kwargs):
+        self.validate_table()
+        try:
+            action_list = list()
+            for attr, value in kwargs.items():
+                action = getattr(self, attr, None)
+                if action is None:
+                    continue
+                else:
+                    action.set(value)
+            latest_plan = self.update(actions=action_list)
+        except Exception:
+            logger.error("Error UPDATING USER ORGANIZATION RELATION record")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return latest_plan
+
+    def to_dict(self):
+        return dict(
+            id=self.id,
+            organizationId=self.organization_id,
+            creationTime=self.creation_time,
+            lastUpdated=self.last_updated,
+        )
+
+    @classmethod
+    def validate_table(cls):
+        if not cls.exists():
+            logger.error(f"Table {ORGANIZATIONS_TABLE_NAME} does not exists!")
             raise Exception
 
 
