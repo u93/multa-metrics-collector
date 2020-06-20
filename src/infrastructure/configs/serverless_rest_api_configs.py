@@ -33,6 +33,7 @@ SERVERLESS_REST_API_CONFIGS = {
                         "timeout": 10,
                         "environment_vars": {
                             "ENVIRONMENT": "dev",
+                            "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                             "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                             "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
                             "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
@@ -41,6 +42,27 @@ SERVERLESS_REST_API_CONFIGS = {
                     },
                 },
                 "resource_trees": [
+                    {
+                        "resource_name": "current-info",
+                        "methods": ["GET"],
+                        "handler": {
+                            "lambda_name": "serverless_api_current_info_handler",
+                            "description": "Lambda Function that will handle User/Org current info requests to Serverless API.",
+                            "code_path": "./src/functions/",
+                            "runtime": "PYTHON_3_7",
+                            "handler": "serverless_api_current_info.lambda_handler",
+                            "layers": [],
+                            "timeout": 10,
+                            "environment_vars": {
+                                "ENVIRONMENT": "dev",
+                                "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
+                                "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
+                                "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
+                                "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
+                            },
+                            "iam_actions": ["*"],
+                        },
+                    },
                     {
                         "resource_name": "users",
                         "methods": ["GET", "POST", "PUT", "DELETE"],
@@ -54,6 +76,7 @@ SERVERLESS_REST_API_CONFIGS = {
                             "timeout": 10,
                             "environment_vars": {
                                 "ENVIRONMENT": "dev",
+                                "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                                 "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                                 "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
                                 "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
@@ -73,6 +96,7 @@ SERVERLESS_REST_API_CONFIGS = {
                                 "timeout": 10,
                                 "environment_vars": {
                                     "ENVIRONMENT": "dev",
+                                    "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                                     "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                                     "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
                                     "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
@@ -111,6 +135,7 @@ SERVERLESS_REST_API_CONFIGS = {
                             "timeout": 10,
                             "environment_vars": {
                                 "ENVIRONMENT": "dev",
+                                "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                                 "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                                 "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
                                 "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
@@ -130,6 +155,7 @@ SERVERLESS_REST_API_CONFIGS = {
                                 "timeout": 10,
                                 "environment_vars": {
                                     "ENVIRONMENT": "dev",
+                                    "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                                     "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                                     "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
                                     "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
@@ -151,6 +177,7 @@ SERVERLESS_REST_API_CONFIGS = {
                             "timeout": 10,
                             "environment_vars": {
                                 "ENVIRONMENT": "dev",
+                                "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                                 "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                                 "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
                                 "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
@@ -170,6 +197,7 @@ SERVERLESS_REST_API_CONFIGS = {
                                 "timeout": 10,
                                 "environment_vars": {
                                     "ENVIRONMENT": "dev",
+                                    "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                                     "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                                     "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
                                     "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"

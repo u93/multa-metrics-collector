@@ -40,10 +40,7 @@ def delete():
 
 
 def lambda_handler(event, context):
-    activation_time = round(time.time())
-    print(activation_time)
-    print(os.environ)
-    print(event)
+    logger.info(event)
 
     http_method = event["httpMethod"]
     if http_method == "GET":

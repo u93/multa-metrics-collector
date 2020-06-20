@@ -28,8 +28,10 @@ USER_BACKEND_CONFIGS = {
                         "KEYS_URL": "https://cognito-idp.{region}.amazonaws.com/{user_pool_id}/.well-known/jwks.json",
                         "REGION": "us-east-1",
                         "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
+                        "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                         "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
-                        "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
+                        "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev",
+                        "SERVICE_TOKENS_TABLE_NAME": "multa_backend_service_tokens_table_dev"
                     },
                     "iam_actions": ["*"],
                 }
@@ -46,7 +48,7 @@ USER_BACKEND_CONFIGS = {
                     "billing_mode": "pay_per_request",
                 },
                 {
-                    "table_name": "user_settings",
+                    "table_name": "user_organization_mapping",
                     "partition_key": "id",
                     "stream": {"enabled": False,},
                     "billing_mode": "pay_per_request",
@@ -128,7 +130,9 @@ USER_BACKEND_CONFIGS = {
                         "timeout": 10,
                         "environment_vars": {
                             "ENVIRONMENT": "dev",
-                            "DEFAULT_PLAN": "3367dfd3-4909-4117-a434-379b66e71d18##Basic",
+                            "DEFAULT_SIGNUP_PLAN": "3367dfd3-4909-4117-a434-379b66e71d18##Basic",
+                            "DEFAULT_SIGNUP_ROLE": "5e249517-92cc-4c26-a8fb-233a21b33b4c##admin",
+                            "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                             "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                             "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
                             "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"

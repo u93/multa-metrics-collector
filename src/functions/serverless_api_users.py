@@ -1,7 +1,14 @@
 import os
 import time
+import traceback
 
+from handlers.users_backend.models import Roles
 from handlers.utils import base_response
+
+from settings.logs import Logger
+
+logs_handler = Logger()
+logger = logs_handler.get_logger()
 
 
 def get():
@@ -25,10 +32,7 @@ def delete():
 
 
 def lambda_handler(event, context):
-    activation_time = round(time.time())
-    print(activation_time)
-    print(os.environ)
-    print(event)
+    logger.info(event)
 
     users = {
         "results": [
