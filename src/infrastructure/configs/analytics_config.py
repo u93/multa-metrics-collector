@@ -75,13 +75,13 @@ ANALYTICS_CONFIGS = {
                     {
                         "dataset_name": "analytics_general_pipeline_dataset",
                         "sql_action": {
-                            "sql_query": "SELECT * FROM multa_backend_analytics_general_pipeline_datastore_dev",
+                            "sql_query": "SELECT * FROM multa_backend_analytics_general_pipeline_datastore_dev ORDER BY timestamp DESC",
                         },
                     },
                     {
                         "dataset_name": "analytics_general_pipeline_dataset_timedelta",
                         "sql_action": {
-                            "sql_query": "SELECT * FROM multa_backend_analytics_general_pipeline_datastore_dev",
+                            "sql_query": "SELECT * FROM multa_backend_analytics_general_pipeline_datastore_dev ORDER BY timestamp DESC",
                             "delta_time": {
                                 "timestamp_field": "timestamp",
                                 "offset_seconds": 0
@@ -102,13 +102,13 @@ ANALYTICS_CONFIGS = {
                     {
                         "dataset_name": "analytics_connectivity_pipeline_dataset",
                         "sql_action": {
-                            "sql_query": "SELECT * FROM multa_backend_analytics_connectivity_pipeline_datastore_dev",
+                            "sql_query": "SELECT * FROM multa_backend_analytics_connectivity_pipeline_datastore_dev ORDER BY timestamp DESC",
                         },
                     },
                     {
                         "dataset_name": "analytics_connectivity_pipeline_dataset_timedelta",
                         "sql_action": {
-                            "sql_query": "SELECT * FROM multa_backend_analytics_connectivity_pipeline_datastore_dev",
+                            "sql_query": "SELECT * FROM multa_backend_analytics_connectivity_pipeline_datastore_dev ORDER BY timestamp DESC",
                             "delta_time": {
                                 "timestamp_field": "timestamp",
                                 "offset_seconds": 0
