@@ -2,6 +2,7 @@ import json
 import pandas as pd
 import numpy as np
 import datetime as dt
+from abc import ABCMeta, abstractmethod
 
 # timestamp = 1545730073
 # dt_object = datetime.fromtimestamp(timestamp)
@@ -10,7 +11,8 @@ import datetime as dt
 # print("type(dt_object) =", type(dt_object))
 
 
-class query_analize():
+class Query_Analize():
+	__metaclass__ = ABCMeta
 	def __init__(self, query_file= '', data_file= ''):
 
 		with open(query_file) as file:
@@ -28,10 +30,12 @@ class query_analize():
 		self.data = pd.read_csv(data_file)
 		self.agents_data = []
 		self.agents_result = []
-		self.metric = 'status'
+		self.metrics = []
+
 
 	def format_data (self):
-		self.data = self.data.drop(['__dt'], axis=1)
+		print(list(self.data.columns))
+		self.data = self.data[self.metrics + ['serial_number', 'timestamp']]
 		#print(self.data[self.metric].value_counts())
 		self.data['date_time'] = pd.to_datetime(self.data['timestamp'], unit="s")
 		#print(self.data)
@@ -51,42 +55,28 @@ class query_analize():
 		#print(self.data)
 
 	def select_time(self):
-		start = dt.time(1,50,0)
-		end = dt.time(6,0,0)
+		start = dt.datetime.strptime(self.start_time, '%H:%M:%S').time()
+		end = dt.datetime.strptime(self.end_time, '%H:%M:%S').time()
 		self.data = self.data.between_time(start, end)
-		print(self.data)
-		
-		#pandas.time_range("11:00", "21:30")
+		#print(self.data)
 
 
 	def get_agent_data(self):
 		for i in self.agents:
-			temp = self.data[self.data['serial_number'] == i]
-			self.agents_data.append((list(temp.index) , np.array(temp[self.metric])))
-		print(self.agents_data[0][1])
+			self.agents_data.append(self.data[self.data['serial_number'] == i])
+			print(self.agents_data)
+			#print(i)
+			#self.agents_data.append((list(temp.index) , np.array(temp[self.metrics[0]])))
+		#print(self.agents_data[0][1])
 	
+	@abstractmethod 
 	def make_analysis(self):
-		if self.analysis == "average":
-			for ang_data in self.agents_data:
-				self.agents_result.append(ang_data[1].mean())
-		elif self.analysis == "maximun":
-			for ang_data in self.agents_data:
-				self.agents_result.append(ang_data[1].max())
-		elif self.analysis == "minimun":
-			for ang_data in self.agents_data:
-				self.agents_result.append(ang_data[1].min())
-		print(self.agents_result)
-
-	def get_query_results(self):
 		pass
 
-
-query = query_analize('query.json','ElU.csv')
-query.format_data()
-query.select_period()
-query.select_time()
-query.get_agent_data()
-query.make_analysis()
+	@abstractmethod 	
+	def get_query_results(self):
+		pass
+		
 
 # timestamp = 1583713243
 # print(timestamp)
