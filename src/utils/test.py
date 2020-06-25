@@ -20,6 +20,3 @@ print("PLANS QUERY BY ID")
 plan_by_id = Plans.get_record_by_id(id_="8e46f619-610e-4e65-812a-d42b884197f4")
 for plan in plan_by_id:
     print(plan.to_dict())
-
-
-

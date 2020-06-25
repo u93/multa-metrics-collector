@@ -10,14 +10,16 @@ from disk_analysis_class import Disk_Analize
 from cpu_analysis_class import CPU_Analize
 from temp_analysis_class import Temp_Analize
 
-query = Ram_Analize('query.json','NewFormat.csv')
-#query.format_data()
-#query.select_period()
-#query.select_time()
-#query.get_agent_data()
+query = Ram_Analize("query.json", "NewFormat.csv")
+results = query.get_query_results()
+print(results)
+# query.format_data()
+# query.select_period()
+# query.select_time()
+# query.get_agent_data()
 
-#data = query.agents_data[0]
-#print(data['ram_memory_used'])
+# data = query.agents_data[0]
+# print(data['ram_memory_used'])
 print(query.get_query_results())
 
 
