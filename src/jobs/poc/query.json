@@ -1,0 +1,15 @@
+{
+	"analysis": "average",
+	"parameters": {
+		"metric_value": ["ram_memory_total", "ram_memory_available"],
+		"metric_range": "",
+		"start_time": "01:20:00",
+		"end_time": "07:30:00",
+		"start_date": "",
+		"end_date": "",
+		"start_timestamp": "1591585506",
+		"end_timestamp": "1591643030",
+		"agents": ["multa-agent-compose-i386-243"],
+		"metadata": {}
+	}
+}
