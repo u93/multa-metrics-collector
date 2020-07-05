@@ -130,6 +130,9 @@ class Organizations(Model):
             for organization in organization_records:
                 return organization
 
+            logger.info(f"No ORGANZATION found by id {id_}")
+            return False
+
         except Exception:
             logger.error("Error QUERYING individual ORGANIZATIONS")
             logger.error(traceback.format_exc())
@@ -218,7 +221,7 @@ class Users(Model):
         :param user_id: Cognito User ID.
         :param role: Plan ID in DynamoDB.
         :param organization_id: Element ID in DynamoDB.
-        :param is_valid:
+        :param is_valid: If user account is Valid or not.
         :return: Class Instance
         """
         cls.validate_table()
@@ -401,7 +404,8 @@ class UserOrganizationRelation(Model):
         except Exception:
             logger.error("Error QUERYING individual USER ORGANIZATION RELATION")
             logger.error(traceback.format_exc())
-            return False
+
+        return False
 
     @classmethod
     def get_records(cls, last_evaluated_key=None):
@@ -668,13 +672,14 @@ class Roles(Model):
     def get_record_by_id(cls, id_: str):
         cls.validate_table()
         try:
-            roles = cls.query(hash_key=id_)
+            roles = cls.query(hash_key=id_, limit=1)
+            for role in roles:
+                return role
         except Exception:
             logger.error("Error QUERYING individual ROLE")
             logger.error(traceback.format_exc())
-            return False
-        else:
-            return roles
+
+        return False
 
     @classmethod
     def get_records(cls, last_evaluated_key=None):
@@ -799,13 +804,14 @@ class Plans(Model):
     def get_record_by_id(cls, id_: str):
         cls.validate_table()
         try:
-            plan = cls.query(hash_key=id_)
+            plans = cls.query(hash_key=id_)
+            for plan in plans:
+                return plan
         except Exception:
             logger.error("Error QUERYING individual PLANs")
             logger.error(traceback.format_exc())
-            return False
-        else:
-            return plan
+
+        return False
 
     @classmethod
     def get_records(cls, last_evaluated_key=None):

@@ -48,7 +48,7 @@ def lambda_handler(event, context):
         if current_roles is False:
             return base_response(status_code=500, dict_body=dict(results=False, error="Error getting account roles..."))
         logger.info(dict(results=current_roles))
-        return base_response(status_code=200, dict_body=dict(results=current_roles))
+        return base_response(status_code=200, dict_body=dict(results=dict(data=current_roles)))
 
     else:
         return base_response(status_code=400, dict_body=dict(results=False, error="Unhandled method..."))

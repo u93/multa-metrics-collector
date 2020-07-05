@@ -33,6 +33,7 @@ SERVERLESS_REST_API_CONFIGS = {
                         "timeout": 10,
                         "environment_vars": {
                             "ENVIRONMENT": "dev",
+                            "USER_POOL_ID": "us-east-1_3y2ZVLaJI",
                             "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                             "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                             "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
@@ -55,6 +56,30 @@ SERVERLESS_REST_API_CONFIGS = {
                             "timeout": 10,
                             "environment_vars": {
                                 "ENVIRONMENT": "dev",
+                                "USER_POOL_ID": "us-east-1_3y2ZVLaJI",
+                                "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
+                                "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
+                                "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
+                                "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
+                            },
+                            "iam_actions": ["*"],
+                        },
+                    },
+                    {
+                        "resource_name": "user-invite",
+                        "methods": ["POST"],
+                        "handler": {
+                            "lambda_name": "serverless_api_user_invite_handler",
+                            "description": "Lambda Function that will handle User/Org current info requests to Serverless API.",
+                            "code_path": "./src/functions/",
+                            "runtime": "PYTHON_3_7",
+                            "handler": "serverless_api_user_invite.lambda_handler",
+                            "layers": [],
+                            "timeout": 10,
+                            "environment_vars": {
+                                "ENVIRONMENT": "dev",
+                                "USER_POOL_ID": "us-east-1_3y2ZVLaJI",
+                                "INVITE_EMAIL_SENDER": "eebf1993@gmail.com",
                                 "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                                 "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                                 "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
@@ -76,6 +101,7 @@ SERVERLESS_REST_API_CONFIGS = {
                             "timeout": 10,
                             "environment_vars": {
                                 "ENVIRONMENT": "dev",
+                                "USER_POOL_ID": "us-east-1_3y2ZVLaJI",
                                 "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                                 "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                                 "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
@@ -96,6 +122,7 @@ SERVERLESS_REST_API_CONFIGS = {
                                 "timeout": 10,
                                 "environment_vars": {
                                     "ENVIRONMENT": "dev",
+                                    "USER_POOL_ID": "us-east-1_3y2ZVLaJI",
                                     "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                                     "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                                     "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",

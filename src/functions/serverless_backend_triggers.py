@@ -1,6 +1,7 @@
 import os
 import traceback
 
+from handlers.users_backend.cognito import CognitoHandler
 from handlers.users_backend.models import Organizations, Users, UserOrganizationRelation
 from settings.aws import COGNITO_TRIGGERS
 from settings.logs import Logger
@@ -12,6 +13,7 @@ logger = logs_handler.get_logger()
 
 def post_confirmation_signup(event):
     cognito_username = event["userName"]
+    # cognito_handler = CognitoHandler()
     try:
         user_attributes = event["request"]["userAttributes"]
         cognito_user_email = user_attributes["email"]

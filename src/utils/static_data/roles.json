@@ -16,7 +16,7 @@
             "restApiId": "2qoob0tpqb",
             "stage": "prod",
             "method": "POST",
-            "resources": ["users", "plans", "roles", "organizations"]
+            "resources": ["users", "plans", "roles", "organizations", "user-invite"]
           }
         ]
       },

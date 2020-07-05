@@ -109,9 +109,8 @@ class Organizations(Model):
     def delete_record_by_id(cls, id_: str):
         cls.validate_table()
         try:
-            organizations = cls.get_record_by_id(id_=id_)
-            for organization in organizations:
-                organization.delete()
+            organization = cls.get_record_by_id(id_=id_)
+            organization.delete()
         except Exception:
             logger.error("Error DELETING ORGANIZATION by id")
             logger.error(traceback.format_exc())
@@ -123,13 +122,21 @@ class Organizations(Model):
     def get_record_by_id(cls, id_: str):
         cls.validate_table()
         try:
-            organization = cls.query(hash_key=id_)
+            organization_records = cls.query(
+                hash_key=id_,
+                filter_condition=Organizations.element_id.contains(id_),
+                limit=1
+            )
+            for organization in organization_records:
+                return organization
+
+            logger.info(f"No ORGANZATION found by id {id_}")
+            return False
+
         except Exception:
             logger.error("Error QUERYING individual ORGANIZATIONS")
             logger.error(traceback.format_exc())
             return False
-        else:
-            return organization
 
     @classmethod
     def get_records(cls, last_evaluated_key=None):
@@ -214,7 +221,7 @@ class Users(Model):
         :param user_id: Cognito User ID.
         :param role: Plan ID in DynamoDB.
         :param organization_id: Element ID in DynamoDB.
-        :param is_valid:
+        :param is_valid: If user account is Valid or not.
         :return: Class Instance
         """
         cls.validate_table()
@@ -247,12 +254,11 @@ class Users(Model):
             return True
 
     @classmethod
-    def delete_record_by_id(cls, id_: str):
+    def delete_record_by_id(cls, organization_id: str, user_id: str):
         cls.validate_table()
         try:
-            users = cls.get_record_by_id(id_=id_)
-            for user in users:
-                user.delete()
+            user = cls.get_record_by_id(organization_id=organization_id, user_id=user_id)
+            user.delete()
         except Exception:
             logger.error("Error DELETING USER by id")
             logger.error(traceback.format_exc())
@@ -261,16 +267,16 @@ class Users(Model):
             return True
 
     @classmethod
-    def get_record_by_id(cls, id_: str):
+    def get_record_by_id(cls, organization_id: str, user_id: str):
         cls.validate_table()
         try:
-            user = cls.query(hash_key=id_)
+            user_records = cls.query(hash_key=organization_id, range_key_condition=Users.element_id.contains(user_id), limit=1)
+            for user in user_records:
+                return user
         except Exception:
             logger.error("Error QUERYING individual USER")
             logger.error(traceback.format_exc())
             return False
-        else:
-            return user
 
     @classmethod
     def get_records(cls, last_evaluated_key=None):
@@ -379,9 +385,8 @@ class UserOrganizationRelation(Model):
     def delete_record_by_id(cls, id_: str):
         cls.validate_table()
         try:
-            users = cls.get_record_by_id(id_=id_)
-            for user in users:
-                user.delete()
+            user = cls.get_record_by_id(id_=id_)
+            user.delete()
         except Exception:
             logger.error("Error DELETING USER ORGANIZATION RELATION by id")
             logger.error(traceback.format_exc())
@@ -393,13 +398,14 @@ class UserOrganizationRelation(Model):
     def get_record_by_id(cls, id_: str):
         cls.validate_table()
         try:
-            user = cls.query(hash_key=id_)
+            user_records = cls.query(hash_key=id_, limit=1)
+            for user in user_records:
+                return user
         except Exception:
             logger.error("Error QUERYING individual USER ORGANIZATION RELATION")
             logger.error(traceback.format_exc())
-            return False
-        else:
-            return user
+
+        return False
 
     @classmethod
     def get_records(cls, last_evaluated_key=None):
@@ -666,13 +672,14 @@ class Roles(Model):
     def get_record_by_id(cls, id_: str):
         cls.validate_table()
         try:
-            roles = cls.query(hash_key=id_)
+            roles = cls.query(hash_key=id_, limit=1)
+            for role in roles:
+                return role
         except Exception:
             logger.error("Error QUERYING individual ROLE")
             logger.error(traceback.format_exc())
-            return False
-        else:
-            return roles
+
+        return False
 
     @classmethod
     def get_records(cls, last_evaluated_key=None):
@@ -797,13 +804,14 @@ class Plans(Model):
     def get_record_by_id(cls, id_: str):
         cls.validate_table()
         try:
-            plan = cls.query(hash_key=id_)
+            plans = cls.query(hash_key=id_)
+            for plan in plans:
+                return plan
         except Exception:
             logger.error("Error QUERYING individual PLANs")
             logger.error(traceback.format_exc())
-            return False
-        else:
-            return plan
+
+        return False
 
     @classmethod
     def get_records(cls, last_evaluated_key=None):

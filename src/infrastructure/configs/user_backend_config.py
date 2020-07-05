@@ -23,8 +23,8 @@ USER_BACKEND_CONFIGS = {
                     "timeout": 10,
                     "environment_vars": {
                         "ENVIRONMENT": "dev",
-                        "USER_POOL_ID": "us-east-1_DtWS0jYn8",
-                        "USER_POOL_APP_CLIENT_ID": "alii58041k72hht8gb7r2cgn2",
+                        "USER_POOL_ID": "us-east-1_3y2ZVLaJI",
+                        "USER_POOL_APP_CLIENT_ID": "4vg2pa7su7mi4e4buemab7vuvl",
                         "KEYS_URL": "https://cognito-idp.{region}.amazonaws.com/{user_pool_id}/.well-known/jwks.json",
                         "REGION": "us-east-1",
                         "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
@@ -73,7 +73,7 @@ USER_BACKEND_CONFIGS = {
                 },
             ],
             "user_pool": {
-                "pool_name": "users",
+                "pool_name": "user",
                 "password_policy": {
                     "minimum_length": 8,
                     "temporary_password_duration": 1,
@@ -83,11 +83,11 @@ USER_BACKEND_CONFIGS = {
                     "enabled": True,
                     "user_verification": {
                         "email": {
-                            "subject": "Multa User Pool - User Account",
-                            "body": "Multa - Your username is {username} and temporary password is {####}. ",
+                            "subject": "Multa User Pool - Account Verification",
+                            "body": "Your temporary code is {####}, please use it to confirm your account.",
                             "style": "",
                         },
-                        "sms": {"body": "Multa - Your username is {username} and temporary password is {####}."},
+                        "sms": {"body": "Your temporary code is {####}, please use it to confirm your account."},
                     },
                 },
                 "invitation": {
@@ -100,21 +100,21 @@ USER_BACKEND_CONFIGS = {
                 "sign_in": {"order": ["email"]},
                 "attributes": {
                     "standard": [
-                        {"name": "email", "mutable": False, "required": True},
-                        {"name": "given_name", "mutable": False, "required": True},
-                        {"name": "family_name", "mutable": False, "required": True},
-                        {"name": "phone_number", "mutable": False, "required": True},
-                        {"name": "last_update_time", "mutable": False, "required": True},
+                        {"name": "email", "mutable": True, "required": True},
+                        {"name": "given_name", "mutable": True, "required": True},
+                        {"name": "family_name", "mutable": True, "required": True},
+                        {"name": "phone_number", "mutable": True, "required": True},
+                        {"name": "last_update_time", "mutable": True, "required": True},
                     ]
                 },
                 "app_client": {
                     "enabled": True,
-                    "client_name": "users",
+                    "client_name": "user",
                     "generate_secret": False,
                     "auth_flows": {"custom": True, "refresh_token": True, "user_srp": True},
                 },
                 "identity_pool": {
-                    "identity_pool_name": "users",
+                    "identity_pool_name": "user",
                     "allow_unauth_identities": True,
                     "unauth_role": {"actions": ["*"], "resources": ["*"]},
                     "auth_role": {"actions": ["*"], "resources": ["*"]}
@@ -130,6 +130,7 @@ USER_BACKEND_CONFIGS = {
                         "timeout": 10,
                         "environment_vars": {
                             "ENVIRONMENT": "dev",
+                            "USER_POOL_ID": "us-east-1_3y2ZVLaJI",
                             "DEFAULT_SIGNUP_PLAN": "3367dfd3-4909-4117-a434-379b66e71d18##Basic",
                             "DEFAULT_SIGNUP_ROLE": "5e249517-92cc-4c26-a8fb-233a21b33b4c##admin",
                             "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
@@ -138,7 +139,7 @@ USER_BACKEND_CONFIGS = {
                             "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
                         },
                         "iam_actions": ["*"],
-                    }
+                    },
                 },
             },
         },

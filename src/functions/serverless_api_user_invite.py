@@ -1,9 +1,9 @@
-import os
-import time
+import json
 import traceback
 
-from handlers.users_backend.cognito import CognitoHandler, parse_attributes
-from handlers.users_backend.models import Organizations, Roles, UserOrganizationRelation, Users
+from handlers.users_backend.ses import generate_invite_url, SesHandler
+from handlers.users_backend.cognito import CognitoHandler
+from handlers.users_backend.models import Organizations
 from handlers.utils import base_response
 
 from settings.logs import Logger
@@ -13,29 +13,35 @@ logger = logs_handler.get_logger()
 
 
 def get(event, **kwargs):
-    response_dict = dict(users=list(), paginationToken=None)
+    pass
+
+
+def post(event, **kwargs):
     try:
+        body = json.loads(event["body"])
+        cognito_user_email = body["emailAddress"]
+        user_organization_id = body["organizationId"]
+        organization_data = Organizations.get_record_by_id(id_=user_organization_id)
+        if organization_data is False:
+            return False
+
         cognito_handler = CognitoHandler()
-        user_id = event["requestContext"]["authorizer"]["principalId"]
+        is_email_valid = cognito_handler.check_user(email_address=cognito_user_email)
+        if is_email_valid is not False:
+            return False
 
-        users_info = cognito_handler.list_users()
-        users_list = users_info["Users"]
-        pagination_token = users_info.get("PaginationToken")
-        parsed_users = parse_attributes(users_list=users_list)
-
-        response_dict["users"] = parsed_users
-        response_dict["paginationToken"] = pagination_token
+        invite_url = generate_invite_url(email_address=cognito_user_email, organization_id=user_organization_id)
+        ses_handler = SesHandler()
+        email_sent = ses_handler.send_invite_email(invite_url=invite_url, recipient=cognito_user_email)
+        if email_sent is False:
+            return False
 
     except Exception:
-        logger.error("Error GETTING current USERS info")
+        logger.error("Error GETTING current USER/ORGANIZATION and sending EMAIL for INVITE")
         logger.error(traceback.format_exc())
         return False
 
-    return response_dict
-
-
-def post():
-    pass
+    return True
 
 
 def put():
@@ -54,10 +60,10 @@ def lambda_handler(event, context):
     logger.info(event)
 
     http_method = event["httpMethod"]
-    if http_method == "GET":
-        current_info = get(event=event)
+    if http_method == "POST":
+        current_info = post(event=event)
         if current_info is False:
-            return base_response(status_code=500, dict_body=dict(results=False, error="Error getting user/organization info..."))
+            return base_response(status_code=500, dict_body=dict(results=False, error="Error inviting user..."))
         logger.info(dict(results=current_info))
         return base_response(status_code=200, dict_body=dict(results=dict(data=current_info)))
 
@@ -69,7 +75,7 @@ if __name__ == "__main__":
     lambda_event = {
         "resource": "/users",
         "path": "/users/",
-        "httpMethod": "GET",
+        "httpMethod": "POST",
         "headers": {
             "Accept": "application/json, text/plain, */*",
             "Accept-Encoding": "gzip, deflate, br",
@@ -179,8 +185,8 @@ if __name__ == "__main__":
                 "integrationLatency": 1083,
                 "key": "value"
             },
-            "resourcePath": "/users",
-            "httpMethod": "GET",
+            "resourcePath": "/user-invite",
+            "httpMethod": "POST",
             "extendedRequestId": "OWr2yGyeoAMFZEA=",
             "requestTime": "19/Jun/2020:02:44:33 +0000",
             "path": "/prod/users/",

@@ -7,18 +7,33 @@ from jose import jwk, jwt
 from jose.utils import base64url_decode
 import requests
 
+from handlers.users_backend.cognito import CognitoHandler
 from handlers.users_backend.models import Roles, ServiceTokens
-from settings.authorizer import USER_POOL_APP_CLIENT_ID, KEYS_URL
+from settings.authorizer import USER_POOL_APP_CLIENT_ID
 from settings.logs import Logger
 
 logs_handler = Logger()
 logger = logs_handler.get_logger()
 
 
-def get_cognito_keys():
-    logger.info(KEYS_URL)
-    keys = requests.get(url=KEYS_URL)
-    return keys.json()["keys"]
+# def get_cognito_keys():
+#     logger.info(KEYS_URL)
+#     keys = requests.get(url=KEYS_URL)
+#     return keys.json()["keys"]
+
+
+def validate_access_token(access_token: str):
+    try:
+        cognito_handler = CognitoHandler()
+        user_data = cognito_handler.get_user_by_access_token(access_token=access_token)
+        if user_data is False:
+            return False
+        else:
+            return user_data["user_id"]
+    except Exception:
+        logger.error("Error validating Access Token")
+        logger.error(traceback.format_exc())
+        return False
 
 
 def validate_token(access_token: str):
@@ -90,9 +105,8 @@ def get_service_tokens():
 
 def get_user_role(user_id):
     role_id = "5e249517-92cc-4c26-a8fb-233a21b33b4c##admin"
-    roles = Roles.get_record_by_id(id_=role_id)
-    for role in roles:
-        return role.to_dict()
+    role = Roles.get_record_by_id(id_=role_id)
+    return role.to_dict()
 
 
 def is_authorized(current_path: str, user_id: str):
@@ -123,12 +137,13 @@ def lambda_handler(event, context):
     """
     principal_id = None
     if token_prefix == "ServiceToken":
-        principal_id = "service"
+        principal_id = token_value
     else:
         try:
-            unverified_claims = jwt.get_unverified_claims(token_value)
-            logger.info(unverified_claims)
-            principal_id = jwt.get_unverified_claims(token_value).get("cognito:username")
+            # unverified_claims = jwt.get_unverified_claims(token_value)
+            # logger.info(unverified_claims)
+            # principal_id = jwt.get_unverified_claims(token_value).get("cognito:username")
+            principal_id = validate_access_token(access_token=token_value)
         except Exception:
             logger.error("Error decoding token... Probably is malformed")
 
@@ -174,26 +189,27 @@ def lambda_handler(event, context):
             policy.allow_all_methods()
         else:
             logger.info(f"Token received is not a Service Token... Validating...")
-            try:
-                current_user_info = validate_token(access_token=token_value)
-            except Exception:
-                logger.error("Error validating received token...")
-                policy.deny_all_methods()
-            else:
-                # ADD USER TOKEN VALIDATION
-                if isinstance(current_user_info, str) is True:
-                    user_authorization = is_authorized(current_path=resource_path, user_id=current_user_info)
-                    if bool(user_authorization) is True:
-                        logger.info(f"Allowing all methods for {token_value}")
-                        policy.allow_all_methods()
-                    else:
-                        logger.error(f"Denying all methods for {token_value}")
-                        policy.deny_all_methods()
-
-                # IF EVERYTHING FAILS DENY ALL METHODS
+            # try:
+            #     # current_user_info = validate_token(access_token=token_value)
+            #     current_user_info = validate_access_token(access_token=token_value)
+            # except Exception:
+            #     logger.error("Error validating received token...")
+            #     policy.deny_all_methods()
+            # else:
+            # ADD USER TOKEN VALIDATION
+            if isinstance(principal_id, str) is True:
+                user_authorization = is_authorized(current_path=resource_path, user_id=principal_id)
+                if bool(user_authorization) is True:
+                    logger.info(f"Allowing all methods for {token_value}")
+                    policy.allow_all_methods()
                 else:
                     logger.error(f"Denying all methods for {token_value}")
                     policy.deny_all_methods()
+
+            # IF EVERYTHING FAILS DENY ALL METHODS
+            else:
+                logger.error(f"Denying all methods for {token_value}")
+                policy.deny_all_methods()
 
     """
     policy.allowMethod(HttpVerb.GET, "/pets/*")
@@ -402,7 +418,7 @@ class AuthPolicy(object):
 if __name__ == "__main__":
     response = lambda_handler(
         event=dict(
-            authorizationToken="Token eyJraWQiOiJBUTcrbDNJT2ZGZzhjSHN5dDExMlwvR3BSWEM4VHV4SUtiK1pqSGd2MFpmcz0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhNDE5ZGRjYy1jYjU3LTQ4ODctOGQyNC04MTZlMzY0YjNjOTIiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6XC9cL2NvZ25pdG8taWRwLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tXC91cy1lYXN0LTFfRHRXUzBqWW44IiwicGhvbmVfbnVtYmVyX3ZlcmlmaWVkIjpmYWxzZSwiY29nbml0bzp1c2VybmFtZSI6ImE0MTlkZGNjLWNiNTctNDg4Ny04ZDI0LTgxNmUzNjRiM2M5MiIsImdpdmVuX25hbWUiOiJFdWdlbmlvIiwiYXVkIjoiNXV2OWVhMG1yNjIybHY3NnZwcWhqY3ZvaCIsImV2ZW50X2lkIjoiYmIyY2U5NDctZDg4Yi00NDAxLWFlZTYtMDA0ZDEzOWNkMDYxIiwidXBkYXRlZF9hdCI6MTU5MDI2NjY0NzY0NiwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE1OTE3NTc1MTQsInBob25lX251bWJlciI6IisxNzg2Njc1ODA1NCIsImV4cCI6MTU5MTc2MTExNSwiaWF0IjoxNTkxNzU3NTE1LCJmYW1pbHlfbmFtZSI6IkJyZWlqbyIsImVtYWlsIjoiZWViZjE5OTNAZ21haWwuY29tIn0.Lu4oSty2UY1zRcV7KDAVXUIj6ojg53s8od5APAGbPCK_6jiONH9ISEGGY8HXFOQu9akutibPG7sytohthYHSXuG_gcz7jpADPEcqLwx2YNn4sYHqxk0VeLXvgZZZZLqr3Fv6LP6E7_Gkl1_4J442n_L19gi91InK7TM9w04SidaI0JUsJc0wYqjOfLKXfbq30Jrnt7cYP6cMAycMX77pMpMYesh-Z5h2fhlkYjaXvc-JR9lr6Db46IoxC6z74xv_rzlCCC74dQAqG99h_s_--xJlpdBEg1NSn0wjR6VaNgqBFOiGave6CXQEPXfScvtb5O_KRea0ifnqd4JXdgDcAA",
+            authorizationToken="Token eyJraWQiOiIzb2dCdmhmY3JGNVFlMnRXUW5oK2JnNjBleFFhVHdxZXZna04yVXpmcHhnPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiI2NzU1NmQ0OS00MmI3LTRjZGUtYTY4MC1iMjI4OTZmOTk1Y2YiLCJldmVudF9pZCI6ImNiOWFkYmYwLWQxZjQtNDY3YS1iY2E3LTRjNjc0MTRjZmI4OSIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4iLCJhdXRoX3RpbWUiOjE1OTI3ODkwNDUsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC51cy1lYXN0LTEuYW1hem9uYXdzLmNvbVwvdXMtZWFzdC0xX0R0V1MwalluOCIsImV4cCI6MTU5Mjc5OTI2MywiaWF0IjoxNTkyNzk1NjYzLCJqdGkiOiIxZjhjNGM0OS1iNmYwLTRkY2MtYTdhMS1mMGE4YjczZjA4YmMiLCJjbGllbnRfaWQiOiJhbGlpNTgwNDFrNzJoaHQ4Z2I3cjJjZ24yIiwidXNlcm5hbWUiOiI2NzU1NmQ0OS00MmI3LTRjZGUtYTY4MC1iMjI4OTZmOTk1Y2YifQ.Rir8jb8tOM2vlvqTexnl6To74xeS6woVwxh-TcAa4hFem7OSO38XTlptjLHWbyCgGERj7jRkM3lXxTIxGBfIyESOIhwLkYUXhmyVs85jjxc2nqbrVm1PPgyejQPY119INijcM5I5Ctd_Sxl3iBzw_yHbEfdOJker1qlX6oZPLP9frqqVFlmqEsfe4R1Eais-ayTc9L8OCTvo7RQPUKHBvJ67APhz1ISboZNGoknxfBk-X3DcdmYGvKOezMglZCGUjvCp2F4mdCFuZLiWpN7XSRc0vj0Gi8TIHt_o_aWNSuRRzWRDEi-sOCoCKG-HxAY2iEZ3Kfeuq4Wvwel6PB3iZQ",
             methodArn="arn:aws:execute-api:us-east-1:112646120612:2qoob0tpqb/prod/GET/plans/123",
         ),
         context={},

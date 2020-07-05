@@ -48,7 +48,7 @@ def lambda_handler(event, context):
         if current_plans is False:
             return base_response(status_code=500, dict_body=dict(results=False, error="Error getting account plans..."))
         logger.info(dict(results=current_plans))
-        return base_response(status_code=200, dict_body=dict(results=current_plans))
+        return base_response(status_code=200, dict_body=dict(results=dict(data=current_plans)))
 
     else:
         return base_response(status_code=400, dict_body=dict(results=False, error="Unhandled method..."))
