@@ -22,16 +22,17 @@ df = df[df["serial_number"] == "080027526c42"]
 print(len(df))
 d = 4
 
+
 def Statement_change():
 
     for i in range(1, len(df)):
-        if df.status.iloc[i] == df.status.iloc[i-1]:
+        if df.status.iloc[i] == df.status.iloc[i - 1]:
             df.new2.iloc[i] = 0
         else:
             df.new2.iloc[i] = 1
-    return print(df[['serial_number', 'status', 'new', 'new2']]) + print(sum(df['new2']))
+    return print(df[["serial_number", "status", "new", "new2"]]) + print(sum(df["new2"]))
 
-    return print(df[['serial_number', 'status', 'fecha', 'new2', 'new']].head(40)), print(sum(df['new2']))
+    return print(df[["serial_number", "status", "fecha", "new2", "new"]].head(40)), print(sum(df["new2"]))
+
 
 Statement_change()
-

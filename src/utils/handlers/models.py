@@ -72,7 +72,7 @@ class Organizations(Model):
                     # api_keys=[secrets.token_hex(SERVICE_TOKEN_BYTES)],
                     creation_time=round(time.time()),
                     last_updated=round(time.time()),
-                    billing_time=billing_time
+                    billing_time=billing_time,
                 )
             else:
                 organization = cls(
@@ -85,7 +85,7 @@ class Organizations(Model):
                     # api_keys=[secrets.token_hex(SERVICE_TOKEN_BYTES)],
                     creation_time=round(time.time()),
                     last_updated=round(time.time()),
-                    billing_time=billing_time
+                    billing_time=billing_time,
                 )
             organization.save()
         except Exception:
@@ -123,9 +123,7 @@ class Organizations(Model):
         cls.validate_table()
         try:
             organization_records = cls.query(
-                hash_key=id_,
-                filter_condition=Organizations.element_id.contains(id_),
-                limit=1
+                hash_key=id_, filter_condition=Organizations.element_id.contains(id_), limit=1
             )
             for organization in organization_records:
                 return organization
@@ -270,7 +268,9 @@ class Users(Model):
     def get_record_by_id(cls, organization_id: str, user_id: str):
         cls.validate_table()
         try:
-            user_records = cls.query(hash_key=organization_id, range_key_condition=Users.element_id.contains(user_id), limit=1)
+            user_records = cls.query(
+                hash_key=organization_id, range_key_condition=Users.element_id.contains(user_id), limit=1
+            )
             for user in user_records:
                 return user
         except Exception:
@@ -633,7 +633,12 @@ class Roles(Model):
         cls.validate_table()
         try:
             if id_ is None:
-                role = cls(id=f"{uuid.uuid4()}##{name}", index=index, logic_groups=logic_groups, last_updated=round(time.time()))
+                role = cls(
+                    id=f"{uuid.uuid4()}##{name}",
+                    index=index,
+                    logic_groups=logic_groups,
+                    last_updated=round(time.time()),
+                )
             else:
                 role = cls(id=id_, index=index, logic_groups=logic_groups, last_updated=round(time.time()))
             role.save()
@@ -751,7 +756,7 @@ class Plans(Model):
     last_updated = NumberAttribute(default_for_new=round(time.time()))
 
     @classmethod
-    def create(cls, name: str, index:int, conditions: dict, price: dict, id_=None):
+    def create(cls, name: str, index: int, conditions: dict, price: dict, id_=None):
         """
         Can be used to create as well to update (if record ID is passed).
         :param name: Plan Name
@@ -764,7 +769,11 @@ class Plans(Model):
         try:
             if id_ is None:
                 plan = cls(
-                    id=f"{uuid.uuid4()}##{name}", index=index, conditions=conditions, price=price, last_updated=round(time.time())
+                    id=f"{uuid.uuid4()}##{name}",
+                    index=index,
+                    conditions=conditions,
+                    price=price,
+                    last_updated=round(time.time()),
                 )
             else:
                 plan = cls(id=id_, index=index, conditions=conditions, price=price, last_updated=round(time.time()))

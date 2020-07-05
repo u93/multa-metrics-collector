@@ -25,20 +25,11 @@ def post_confirmation_signup(event):
         if organization_name is None:
             # ADD ERROR VALIDATION FOR TRIGGER RESPONSE
             pass
-        organization = Organizations.create(
-            name=organization_name,
-            plan=DEFAULT_SIGNUP_PLAN,
-            owner=cognito_username
-        )
+        organization = Organizations.create(name=organization_name, plan=DEFAULT_SIGNUP_PLAN, owner=cognito_username)
         user_organization_mapping = UserOrganizationRelation.create(
-            user_id=cognito_username,
-            organization_id=organization.id
+            user_id=cognito_username, organization_id=organization.id
         )
-        user_settings = Users.create(
-            organization_id=organization.id,
-            user_id=cognito_username,
-            role=user_role
-        )
+        user_settings = Users.create(organization_id=organization.id, user_id=cognito_username, role=user_role)
         logger.info(organization.to_dict())
         logger.info(user_organization_mapping.to_dict())
         logger.info(user_settings.to_dict())
@@ -62,29 +53,27 @@ def lambda_handler(event, context):
 
 if __name__ == "__main__":
     lambda_event = {
-        'version': '1',
-        'region': 'us-east-1',
-        'userPoolId': 'us-east-1_DtWS0jYn8',
-        'userName': '9aaa508c-511d-4a09-91e2-1a44e1804d57',
-        'callerContext': {'awsSdkVersion': 'aws-sdk-unknown-unknown', 'clientId': 'alii58041k72hht8gb7r2cgn2'},
-        'triggerSource': 'PostConfirmation_ConfirmSignUp',
-        'request': {
-            'userAttributes': {
-                'sub': '9aaa508c-511d-4a09-91e2-1a44e1804d57',
-                'cognito:email_alias': 'eebf1993@gmail.com',
-                'cognito:user_status': 'CONFIRMED',
-                'email_verified': 'true',
-                'updated_at': '1592454703768',
-                'phone_number_verified': 'false',
-                'phone_number': '+17866758054',
-                'given_name': 'Eugenio',
-                'family_name': 'Breijo',
-                'email': 'eebf1993@gmail.com'
+        "version": "1",
+        "region": "us-east-1",
+        "userPoolId": "us-east-1_DtWS0jYn8",
+        "userName": "9aaa508c-511d-4a09-91e2-1a44e1804d57",
+        "callerContext": {"awsSdkVersion": "aws-sdk-unknown-unknown", "clientId": "alii58041k72hht8gb7r2cgn2"},
+        "triggerSource": "PostConfirmation_ConfirmSignUp",
+        "request": {
+            "userAttributes": {
+                "sub": "9aaa508c-511d-4a09-91e2-1a44e1804d57",
+                "cognito:email_alias": "eebf1993@gmail.com",
+                "cognito:user_status": "CONFIRMED",
+                "email_verified": "true",
+                "updated_at": "1592454703768",
+                "phone_number_verified": "false",
+                "phone_number": "+17866758054",
+                "given_name": "Eugenio",
+                "family_name": "Breijo",
+                "email": "eebf1993@gmail.com",
             },
-            'clientMetadata': {
-                'organization_name': "Eugenio's Dev Org"
-            }
+            "clientMetadata": {"organization_name": "Eugenio's Dev Org"},
         },
-        'response': {}
+        "response": {},
     }
     result = lambda_handler(event=lambda_event, context={})

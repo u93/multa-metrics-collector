@@ -49,14 +49,10 @@ def lambda_handler(event, context):
                     rest_api_id=group["restApiId"],
                     stage=group["stage"],
                     method=group["method"],
-                    resources=group["resources"]
+                    resources=group["resources"],
                 )
             )
-        role = Roles.create(
-            name=role["name"],
-            index=role["index"],
-            logic_groups=logic_groups,
-        )
+        role = Roles.create(name=role["name"], index=role["index"], logic_groups=logic_groups,)
 
     # GO THRU ALL IN S3, IF EXIST IN DYNAMO -> UPDATE, IF NOT EXIST -> CREATE (USE IDs)
     for modified_role in modified_roles:
@@ -67,7 +63,7 @@ def lambda_handler(event, context):
                     rest_api_id=group["restApiId"],
                     stage=group["stage"],
                     method=group["method"],
-                    resources=group["resources"]
+                    resources=group["resources"],
                 )
             )
         role = Roles.create(

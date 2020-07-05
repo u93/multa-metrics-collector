@@ -7,9 +7,7 @@ import uuid
 import boto3
 
 from handlers.common import Sts
-from settings.aws import (
-    USER_POOL_ID,
-)
+from settings.aws import USER_POOL_ID
 from settings.logs import Logger
 
 logs_handler = Logger()
@@ -26,11 +24,7 @@ class SnsHandler(Sts):
         self.sns_client = boto3.client("sns")
 
     def send_message(self, email_data: dict):
-        response = self.sns_client.list_users(
-            UserPoolId=USER_POOL_ID,
-            AttributesToGet=[],
-            Limit=10,
-        )
+        response = self.sns_client.list_users(UserPoolId=USER_POOL_ID, AttributesToGet=[], Limit=10,)
         if len(response["Users"]) == 1:
             return response["Users"]
         else:

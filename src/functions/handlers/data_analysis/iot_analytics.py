@@ -172,14 +172,7 @@ class IotAnalyticsHandler(Sts):
             return False
 
     def create_dataset(
-            self,
-            dset: str,
-            org_id: str,
-            params: str,
-            analysis: str,
-            order="DESC",
-            limit=None,
-            stime_etime=None,
+        self, dset: str, org_id: str, params: str, analysis: str, order="DESC", limit=None, stime_etime=None,
     ):
         """
         Creates Dataset with SQL Action.
@@ -205,7 +198,7 @@ class IotAnalyticsHandler(Sts):
             response = self.iotanalytics_client.create_dataset(
                 datasetName=dataset_name,
                 actions=[{"actionName": dataset_name, "queryAction": {"sqlQuery": sql_query},},],
-                tags=[{"key": "organization", "value": org_id,},]
+                tags=[{"key": "organization", "value": org_id,},],
             )
             return response["datasetName"]
         except Exception:
@@ -222,10 +215,7 @@ class IotAnalyticsHandler(Sts):
         """
         try:
             while True:
-                response = self.iotanalytics_client.get_dataset_content(
-                    datasetName=dataset_name,
-                    versionId=version_id
-                )
+                response = self.iotanalytics_client.get_dataset_content(datasetName=dataset_name, versionId=version_id)
                 if response["status"]["state"] == "CREATING":
                     logger.info("CREATING")
                     time.sleep(1)
@@ -304,9 +294,7 @@ class IotAnalyticsHandler(Sts):
         :return: Version ID of Dataset content or False.
         """
         try:
-            response = self.iotanalytics_client.create_dataset_content(
-                datasetName=dataset_name
-            )
+            response = self.iotanalytics_client.create_dataset_content(datasetName=dataset_name)
             return response["versionId"]
         except Exception:
             logger.error("Error when REFRESING dataset content...")
@@ -343,6 +331,3 @@ if __name__ == "__main__":
     # # version_id = "c4bc2695-4748-4581-a6c3-8ff0c92c69aa"
     # dataset_content_get_action = handler.get_dataset_content(dataset_name=dset_final_name)
     # logger.info(dataset_content_get_action)
-
-
-

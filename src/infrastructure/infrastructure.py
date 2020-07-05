@@ -104,7 +104,8 @@ class UserBackendStack(core.Stack):
         )
         self._user_serverless_backend.authorizer_function.add_environment("USER_POOL_REGION", self.region)
         self._user_serverless_backend.authorizer_function.add_environment(
-            "KEYS_URL", f"https://cognito-idp.{self.region}.amazonaws.com/{self._user_serverless_backend.user_pool.user_pool_id}/.well-known/jwks.json"
+            "KEYS_URL",
+            f"https://cognito-idp.{self.region}.amazonaws.com/{self._user_serverless_backend.user_pool.user_pool_id}/.well-known/jwks.json",
         )
 
     def lambda_authorizer_arn(self):
@@ -173,10 +174,14 @@ class AnalyticsStack(core.Stack):
             )
             for lambda_function in config["config"]["ANALYTICS_INGESTION_ENGINE"]["lambda_handlers"]:
                 lambda_function["environment_vars"][f"IOT_ANALYTICS_CHANNEL_{index}"] = pipeline.channel.channel_name
-                lambda_function["environment_vars"][f"IOT_ANALYTICS_DATASTORE_{index}"] = pipeline.datastore.datastore_name
+                lambda_function["environment_vars"][
+                    f"IOT_ANALYTICS_DATASTORE_{index}"
+                ] = pipeline.datastore.datastore_name
             for lambda_function in config["config"]["ANALYTICS_CONNECTIVITY_INGESTION_ENGINE"]["lambda_handlers"]:
                 lambda_function["environment_vars"][f"IOT_ANALYTICS_CHANNEL_{index}"] = pipeline.channel.channel_name
-                lambda_function["environment_vars"][f"IOT_ANALYTICS_DATASTORE_{index}"] = pipeline.datastore.datastore_name
+                lambda_function["environment_vars"][
+                    f"IOT_ANALYTICS_DATASTORE_{index}"
+                ] = pipeline.datastore.datastore_name
 
         ingestion_engine = AwsIotRulesSqsPipes(
             self,

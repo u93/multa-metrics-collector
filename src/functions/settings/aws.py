@@ -9,10 +9,7 @@ ROLES_TABLE_NAME = os.environ.get("ROLES_TABLE_NAME", "multa_backend_user_roles_
 SERVICE_TOKENS_TABLE_NAME = os.environ.get("SERVICE_TOKENS_TABLE_NAME", "multa_backend_service_tokens_table_dev")
 
 USER_POOL_ID = os.environ.get("USER_POOL_ID", "us-east-1_DtWS0jYn8")
-COGNITO_TRIGGERS = {
-    "POST_CONFIRMATION_CONFIRM_SIGNUP": "PostConfirmation_ConfirmSignUp",
-    "PRE_SIGN_UP": ""
-}
+COGNITO_TRIGGERS = {"POST_CONFIRMATION_CONFIRM_SIGNUP": "PostConfirmation_ConfirmSignUp", "PRE_SIGN_UP": ""}
 
 INVITE_EMAIL_SENDER = os.environ.get("INVITE_EMAIL_SENDER", "eebf1993@gmail.com")
 INVITE_EMAIL_SUBJECT = os.environ.get("INVITE_EMAIL_SUBJECT", "Multa Metrics - Invite")
@@ -26,7 +23,7 @@ INVITE_EMAIL_BODY_HTML = os.environ.get(
           <p>Please use the following link to create your account by clicking on the link <a href={invite_url}>{invite_url}</a></p>
         </body>
     </html>
-    """
+    """,
 )
 INVITE_EMAIL_BODY_TEXT = os.environ.get("INVITE_EMAIL_BODY_TEXT")
 INVITE_EMAIL_CHARSET = "UTF-8"

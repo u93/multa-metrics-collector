@@ -31,7 +31,7 @@ USER_BACKEND_CONFIGS = {
                         "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                         "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
                         "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev",
-                        "SERVICE_TOKENS_TABLE_NAME": "multa_backend_service_tokens_table_dev"
+                        "SERVICE_TOKENS_TABLE_NAME": "multa_backend_service_tokens_table_dev",
                     },
                     "iam_actions": ["*"],
                 }
@@ -40,10 +40,7 @@ USER_BACKEND_CONFIGS = {
                 {
                     "table_name": "organization_data",
                     "partition_key": "id",
-                    "sort_key": {
-                        "name": "setting_id",
-                        "type": "string"
-                    },
+                    "sort_key": {"name": "setting_id", "type": "string"},
                     "stream": {"enabled": False,},
                     "billing_mode": "pay_per_request",
                 },
@@ -117,7 +114,7 @@ USER_BACKEND_CONFIGS = {
                     "identity_pool_name": "user",
                     "allow_unauth_identities": True,
                     "unauth_role": {"actions": ["*"], "resources": ["*"]},
-                    "auth_role": {"actions": ["*"], "resources": ["*"]}
+                    "auth_role": {"actions": ["*"], "resources": ["*"]},
                 },
                 "triggers": {
                     "post_confirmation": {
@@ -136,7 +133,7 @@ USER_BACKEND_CONFIGS = {
                             "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                             "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                             "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
-                            "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev"
+                            "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev",
                         },
                         "iam_actions": ["*"],
                     },

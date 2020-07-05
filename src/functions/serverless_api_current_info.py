@@ -14,22 +14,10 @@ logger = logs_handler.get_logger()
 
 def get(event, **kwargs):
     user_organization_data = dict(
-        userInfo=dict(
-            id=None,
-            attributes=dict(),
-            role=None,
-            creationTime=None,
-            lastUpdated=None
-        ),
+        userInfo=dict(id=None, attributes=dict(), role=None, creationTime=None, lastUpdated=None),
         organizationInfo=dict(
-            id=None,
-            name=None,
-            plan=None,
-            owner=None,
-            creationTime=None,
-            lastUpdated=None,
-            billingTime=None
-        )
+            id=None, name=None, plan=None, owner=None, creationTime=None, lastUpdated=None, billingTime=None
+        ),
     )
     try:
         user_id = event["requestContext"]["authorizer"]["principalId"]
@@ -90,7 +78,9 @@ def lambda_handler(event, context):
     if http_method == "GET":
         current_info = get(event=event)
         if current_info is False:
-            return base_response(status_code=500, dict_body=dict(results=False, error="Error getting user/organization info..."))
+            return base_response(
+                status_code=500, dict_body=dict(results=False, error="Error getting user/organization info...")
+            )
         return base_response(status_code=200, dict_body=dict(results=dict(data=current_info)))
 
     else:
@@ -125,78 +115,36 @@ if __name__ == "__main__":
             "X-Amzn-Trace-Id": "Root=1-5eec2691-660d1a1db186375384de5b45",
             "X-Forwarded-For": "134.56.152.161, 52.46.25.102",
             "X-Forwarded-Port": "443",
-            "X-Forwarded-Proto": "https"
+            "X-Forwarded-Proto": "https",
         },
         "multiValueHeaders": {
-            "Accept": [
-                "application/json, text/plain, */*"
-            ],
-            "Accept-Encoding": [
-                "gzip, deflate, br"
-            ],
-            "Accept-Language": [
-                "en-US,en;q=0.9"
-            ],
+            "Accept": ["application/json, text/plain, */*"],
+            "Accept-Encoding": ["gzip, deflate, br"],
+            "Accept-Language": ["en-US,en;q=0.9"],
             "Authorization": [
                 "Token eyJraWQiOiJBUTcrbDNJT2ZGZzhjSHN5dDExMlwvR3BSWEM4VHV4SUtiK1pqSGd2MFpmcz0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJlY2MxZTM0NC0xMDBlLTRiZTUtOWQ2NS1kYTlmMTk4YmRmMjIiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6XC9cL2NvZ25pdG8taWRwLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tXC91cy1lYXN0LTFfRHRXUzBqWW44IiwicGhvbmVfbnVtYmVyX3ZlcmlmaWVkIjpmYWxzZSwiY29nbml0bzp1c2VybmFtZSI6ImVjYzFlMzQ0LTEwMGUtNGJlNS05ZDY1LWRhOWYxOThiZGYyMiIsImdpdmVuX25hbWUiOiJFdWdlbmlvIiwiYXVkIjoiYWxpaTU4MDQxazcyaGh0OGdiN3IyY2duMiIsImV2ZW50X2lkIjoiOTQ1MTNlNTctNjA1Yi00YmVmLWFiOWYtNDU1ODZiNGYwZWI4IiwidXBkYXRlZF9hdCI6MTU5MjQ1NzUyOTczMCwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE1OTI1MzQ2NjYsInBob25lX251bWJlciI6IisxNzg2Njc1ODA1NCIsImV4cCI6MTU5MjUzODI2NiwiaWF0IjoxNTkyNTM0NjY2LCJmYW1pbHlfbmFtZSI6IkJyZWlqbyIsImVtYWlsIjoiZWViZjE5OTNAZ21haWwuY29tIn0.F_wBJTMlWEFMmL3pcjEyCHwo3J-5JmjMK5lzvANsw9vSsuMDe7SvSqIijmQf8k4rPql2FIE9zStaekyV7DdxBpg7la1Lvytt0b-8xkFTGHJE9MadURrk1kxRiYJP6yfyQQsET43HvTxb_LQzMw6f2JGOYGYrlThZ1-PlH_ftHfwZwVjwAYsihEPpaNAUFxiReqBJ8WcjQL3Tfirz9ON06Pxt4wu7BU1fwkFDJPxSlnUpsrPp-Q4OkmXsfgQHFIxo3SoHtUITui3WifJhAwinAdI9IbvMHRG4QqZCt_rgi2cVL7mdwwLZbJNIY02F0fBpoQEV76UUz6PYe1aKz60b4A"
             ],
-            "CloudFront-Forwarded-Proto": [
-                "https"
-            ],
-            "CloudFront-Is-Desktop-Viewer": [
-                "true"
-            ],
-            "CloudFront-Is-Mobile-Viewer": [
-                "false"
-            ],
-            "CloudFront-Is-SmartTV-Viewer": [
-                "false"
-            ],
-            "CloudFront-Is-Tablet-Viewer": [
-                "false"
-            ],
-            "CloudFront-Viewer-Country": [
-                "US"
-            ],
-            "Host": [
-                "2qoob0tpqb.execute-api.us-east-1.amazonaws.com"
-            ],
-            "origin": [
-                "https://dev.d14258l1f04l0x.amplifyapp.com"
-            ],
-            "Referer": [
-                "https://dev.d14258l1f04l0x.amplifyapp.com/settings"
-            ],
-            "sec-fetch-dest": [
-                "empty"
-            ],
-            "sec-fetch-mode": [
-                "cors"
-            ],
-            "sec-fetch-site": [
-                "cross-site"
-            ],
+            "CloudFront-Forwarded-Proto": ["https"],
+            "CloudFront-Is-Desktop-Viewer": ["true"],
+            "CloudFront-Is-Mobile-Viewer": ["false"],
+            "CloudFront-Is-SmartTV-Viewer": ["false"],
+            "CloudFront-Is-Tablet-Viewer": ["false"],
+            "CloudFront-Viewer-Country": ["US"],
+            "Host": ["2qoob0tpqb.execute-api.us-east-1.amazonaws.com"],
+            "origin": ["https://dev.d14258l1f04l0x.amplifyapp.com"],
+            "Referer": ["https://dev.d14258l1f04l0x.amplifyapp.com/settings"],
+            "sec-fetch-dest": ["empty"],
+            "sec-fetch-mode": ["cors"],
+            "sec-fetch-site": ["cross-site"],
             "User-Agent": [
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36"
             ],
-            "Via": [
-                "2.0 0c9159c06691f6f55df2ceb396d9fd79.cloudfront.net (CloudFront)"
-            ],
-            "X-Amz-Cf-Id": [
-                "d4JSz3NDLcYbSH59oVzPi3QLkupJkNATzRLKkP7kCxQU9FgeTz4Arw=="
-            ],
-            "X-Amzn-Trace-Id": [
-                "Root=1-5eec2691-660d1a1db186375384de5b45"
-            ],
-            "X-Forwarded-For": [
-                "134.56.152.161, 52.46.25.102"
-            ],
-            "X-Forwarded-Port": [
-                "443"
-            ],
-            "X-Forwarded-Proto": [
-                "https"
-            ]
+            "Via": ["2.0 0c9159c06691f6f55df2ceb396d9fd79.cloudfront.net (CloudFront)"],
+            "X-Amz-Cf-Id": ["d4JSz3NDLcYbSH59oVzPi3QLkupJkNATzRLKkP7kCxQU9FgeTz4Arw=="],
+            "X-Amzn-Trace-Id": ["Root=1-5eec2691-660d1a1db186375384de5b45"],
+            "X-Forwarded-For": ["134.56.152.161, 52.46.25.102"],
+            "X-Forwarded-Port": ["443"],
+            "X-Forwarded-Proto": ["https"],
         },
         "queryStringParameters": "None",
         "multiValueQueryStringParameters": "None",
@@ -209,7 +157,7 @@ if __name__ == "__main__":
                 "bool": "true",
                 "principalId": "67556d49-42b7-4cde-a680-b22896f995cf",
                 "integrationLatency": 1083,
-                "key": "value"
+                "key": "value",
             },
             "resourcePath": "/users",
             "httpMethod": "GET",
@@ -234,13 +182,13 @@ if __name__ == "__main__":
                 "cognitoAuthenticationProvider": "None",
                 "userArn": "None",
                 "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36",
-                "user": "None"
+                "user": "None",
             },
             "domainName": "2qoob0tpqb.execute-api.us-east-1.amazonaws.com",
-            "apiId": "2qoob0tpqb"
+            "apiId": "2qoob0tpqb",
         },
         "body": "None",
-        "isBase64Encoded": False
+        "isBase64Encoded": False,
     }
     response = lambda_handler(event=lambda_event, context={})
     logger.info(response)

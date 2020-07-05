@@ -35,26 +35,13 @@ class SesHandler(Sts):
         try:
             body = INVITE_EMAIL_BODY_HTML.format(invite_url=invite_url)
             response = self.ses_client.send_email(
-                Destination={
-                    "ToAddresses": [
-                        recipient,
-                    ],
-                },
+                Destination={"ToAddresses": [recipient,],},
                 Message={
                     "Body": {
-                        "Html": {
-                            "Charset": INVITE_EMAIL_CHARSET,
-                            "Data": body,
-                        },
-                        "Text": {
-                            "Charset": INVITE_EMAIL_CHARSET,
-                            "Data": body,
-                        }
+                        "Html": {"Charset": INVITE_EMAIL_CHARSET, "Data": body,},
+                        "Text": {"Charset": INVITE_EMAIL_CHARSET, "Data": body,},
                     },
-                    "Subject": {
-                        "Charset": INVITE_EMAIL_CHARSET,
-                        "Data": INVITE_EMAIL_SUBJECT,
-                    },
+                    "Subject": {"Charset": INVITE_EMAIL_CHARSET, "Data": INVITE_EMAIL_SUBJECT,},
                 },
                 Source=INVITE_EMAIL_SENDER,
             )

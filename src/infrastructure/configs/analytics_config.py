@@ -12,10 +12,7 @@ ANALYTICS_CONFIGS = {
             "string_value": {"TEST": True},
         },
         "ANALYTICS_INGESTION_ENGINE": {
-            "queue": {
-                "queue_name": "analytics_ingestion_queue",
-
-            },
+            "queue": {"queue_name": "analytics_ingestion_queue",},
             "lambda_handlers": [
                 {
                     "lambda_name": "analytics_metrics_ingestion_handler",
@@ -37,15 +34,15 @@ ANALYTICS_CONFIGS = {
                 "description": "IoT Rule for data ingestion coming from Multa Agents",
                 "rule_disabled": False,
                 "sql": "SELECT *, topic(3) AS serial_number FROM '$aws/things/+/shadow/update/documents'",
-                "aws_iot_sql_version": "2016-03-23"
-            }
+                "aws_iot_sql_version": "2016-03-23",
+            },
         },
         "ANALYTICS_CONNECTIVITY_INGESTION_ENGINE": {
             "cloudwatch_rule": {
                 "rule_name": "connectivity_collector",
                 "description": "Cloudwatch Rule that will activate for Data Collection - Connectivity",
                 "enabled": True,
-                "schedule": "0/2 * * * ? *"
+                "schedule": "0/2 * * * ? *",
             },
             "lambda_handlers": [
                 {
@@ -68,9 +65,7 @@ ANALYTICS_CONFIGS = {
         "ANALYTICS_INGESTION_PIPELINES": [
             {
                 "name": "analytics_general_pipeline",
-                "retention_periods": {
-                    "datastore": 180,
-                },
+                "retention_periods": {"datastore": 180,},
                 "datasets": [
                     {
                         "dataset_name": "analytics_general_pipeline_dataset",
@@ -82,22 +77,15 @@ ANALYTICS_CONFIGS = {
                         "dataset_name": "analytics_general_pipeline_dataset_timedelta",
                         "sql_action": {
                             "sql_query": "SELECT * FROM multa_backend_analytics_general_pipeline_datastore_dev ORDER BY timestamp DESC",
-                            "delta_time": {
-                                "timestamp_field": "timestamp",
-                                "offset_seconds": 0
-                            }
+                            "delta_time": {"timestamp_field": "timestamp", "offset_seconds": 0},
                         },
-                        "trigger_action": {
-                            "schedule": "0/15 * * * ? *"
-                        }
-                    }
-                ]
+                        "trigger_action": {"schedule": "0/15 * * * ? *"},
+                    },
+                ],
             },
             {
                 "name": "analytics_connectivity_pipeline",
-                "retention_periods": {
-                    "datastore": 180,
-                },
+                "retention_periods": {"datastore": 180,},
                 "datasets": [
                     {
                         "dataset_name": "analytics_connectivity_pipeline_dataset",
@@ -109,17 +97,12 @@ ANALYTICS_CONFIGS = {
                         "dataset_name": "analytics_connectivity_pipeline_dataset_timedelta",
                         "sql_action": {
                             "sql_query": "SELECT * FROM multa_backend_analytics_connectivity_pipeline_datastore_dev ORDER BY timestamp DESC",
-                            "delta_time": {
-                                "timestamp_field": "timestamp",
-                                "offset_seconds": 0
-                            }
+                            "delta_time": {"timestamp_field": "timestamp", "offset_seconds": 0},
                         },
-                        "trigger_action": {
-                            "schedule": "0/15 * * * ? *"
-                        }
-                    }
-                ]
-            }
+                        "trigger_action": {"schedule": "0/15 * * * ? *"},
+                    },
+                ],
+            },
         ],
         "ANALYTICS_FAN_OUT_API": {
             "functions": [
@@ -203,7 +186,7 @@ ANALYTICS_CONFIGS = {
                             "KEYS_URL": "https://cognito-idp.{region}.amazonaws.com/{user_pool_id}/.well-known/jwks.json",
                             "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                             "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
-                            "REGION": "us-east-1"
+                            "REGION": "us-east-1",
                         },
                         "iam_actions": ["*"],
                     }
