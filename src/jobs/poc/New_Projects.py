@@ -13,5 +13,5 @@ df1['Time'] = df1['timestamp']
 df1['Time'] = pd.to_datetime(df1['Time']).dt.time
 df1 = df1[df1['serial_number'] == 'multa-agent-compose-6']
 
-print(df1[['serial_number', 'timestamp']])
-print(df1[['serial_number', 'timestamp']])
+print(df1[["serial_number", "timestamp"]])
+print(df1[["serial_number", "timestamp"]])

@@ -22,35 +22,18 @@ def lambda_handler(event, context):
     desired_service_tokens = object_bucket_data["service_tokens"]["values"]
     modified_service_tokens_ids = [
         desired_service_token.get("id")
-        for
-        desired_service_token
-        in
-        desired_service_tokens
-        if
-        desired_service_token.get("id")
-        is not
-        None
+        for desired_service_token in desired_service_tokens
+        if desired_service_token.get("id") is not None
     ]
     modified_service_tokens = [
         desired_service_token
-        for
-        desired_service_token
-        in
-        desired_service_tokens
-        if
-        desired_service_token.get("id")
-        is not
-        None
+        for desired_service_token in desired_service_tokens
+        if desired_service_token.get("id") is not None
     ]
     desired_new_service_tokens = [
         desired_service_token
-        for
-        desired_service_token
-        in
-        desired_service_tokens
-        if
-        desired_service_token.get("id")
-        is None
+        for desired_service_token in desired_service_tokens
+        if desired_service_token.get("id") is None
     ]
 
     # GET PLAN DATA FROM DYNAMO
@@ -77,7 +60,7 @@ def lambda_handler(event, context):
             id_=modified_service_token["id"],
             value=modified_service_token["value"],
             is_valid=modified_service_token["is_valid"],
-            created_time=modified_service_token["created_time"]
+            created_time=modified_service_token["created_time"],
         )
 
     return {"time": activation_time, "status": 200}

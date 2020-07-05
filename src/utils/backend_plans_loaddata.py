@@ -51,7 +51,7 @@ def lambda_handler(event, context):
             name=modified_plan["name"],
             index=modified_plan["index"],
             conditions=modified_plan["conditions"],
-            price=modified_plan["price"]
+            price=modified_plan["price"],
         )
 
     return {"time": activation_time, "status": 200}
