@@ -1,10 +1,8 @@
-import os
-import time
 import traceback
 
-from handlers.users_backend.cognito import CognitoHandler, parse_attributes
-from handlers.users_backend.models import Organizations, Roles, UserOrganizationRelation, Users
-from handlers.utils import base_response
+from handlers.users_backend.cognito import get_users_attributes
+from handlers.users_backend.models import UserOrganizationRelation, Users
+from handlers.utils import base_response, ApiGwEventParser
 
 from settings.logs import Logger
 
@@ -15,23 +13,33 @@ logger = logs_handler.get_logger()
 def get(event, **kwargs):
     response_dict = dict(users=list(), paginationToken=None)
     try:
-        cognito_handler = CognitoHandler()
-        user_id = event["requestContext"]["authorizer"]["principalId"]
+        request_parser = ApiGwEventParser(event=event)
+        request_parser.parse()
 
-        users_info = cognito_handler.list_users()
-        users_list = users_info["Users"]
-        pagination_token = users_info.get("PaginationToken")
-        parsed_users = parse_attributes(users_list=users_list)
+        user_id = request_parser.user_id
+        user_organization_mapping = UserOrganizationRelation.get_record_by_id(id_=user_id)
+        if user_organization_mapping is False:
+            logger.error("Error getting current user info...")
+            return False
+        user_organization = user_organization_mapping.to_dict()["organizationId"]
+        users, total = Users.get_records(organization_id=user_organization)
+        users = Users.records_to_dict(users)
+        users = get_users_attributes(users)
 
-        response_dict["users"] = parsed_users
-        response_dict["paginationToken"] = pagination_token
+        # cognito_handler = CognitoHandler()
+        # users_info = cognito_handler.list_users()
+        # users_list = users_info["Users"]
+        # pagination_token = users_info.get("PaginationToken")
+        # parsed_users = parse_attributes(users_list=users_list)
+
+        response_dict["users"] = users
 
     except Exception:
         logger.error("Error GETTING current USERS info")
         logger.error(traceback.format_exc())
         return False
 
-    return response_dict
+    return users
 
 
 def post():
@@ -57,10 +65,8 @@ def lambda_handler(event, context):
     if http_method == "GET":
         current_info = get(event=event)
         if current_info is False:
-            return base_response(
-                status_code=500, dict_body=dict(results=False, error="Error getting user/organization info...")
-            )
-        logger.info(dict(results=current_info))
+            return base_response(status_code=500, dict_body=dict(results=False, error="Error getting users info..."))
+
         return base_response(status_code=200, dict_body=dict(results=dict(data=current_info)))
 
     else:
@@ -76,7 +82,7 @@ if __name__ == "__main__":
             "Accept": "application/json, text/plain, */*",
             "Accept-Encoding": "gzip, deflate, br",
             "Accept-Language": "en-US,en;q=0.9",
-            "Authorization": "Token eyJraWQiOiJBUTcrbDNJT2ZGZzhjSHN5dDExMlwvR3BSWEM4VHV4SUtiK1pqSGd2MFpmcz0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJlY2MxZTM0NC0xMDBlLTRiZTUtOWQ2NS1kYTlmMTk4YmRmMjIiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6XC9cL2NvZ25pdG8taWRwLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tXC91cy1lYXN0LTFfRHRXUzBqWW44IiwicGhvbmVfbnVtYmVyX3ZlcmlmaWVkIjpmYWxzZSwiY29nbml0bzp1c2VybmFtZSI6ImVjYzFlMzQ0LTEwMGUtNGJlNS05ZDY1LWRhOWYxOThiZGYyMiIsImdpdmVuX25hbWUiOiJFdWdlbmlvIiwiYXVkIjoiYWxpaTU4MDQxazcyaGh0OGdiN3IyY2duMiIsImV2ZW50X2lkIjoiOTQ1MTNlNTctNjA1Yi00YmVmLWFiOWYtNDU1ODZiNGYwZWI4IiwidXBkYXRlZF9hdCI6MTU5MjQ1NzUyOTczMCwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE1OTI1MzQ2NjYsInBob25lX251bWJlciI6IisxNzg2Njc1ODA1NCIsImV4cCI6MTU5MjUzODI2NiwiaWF0IjoxNTkyNTM0NjY2LCJmYW1pbHlfbmFtZSI6IkJyZWlqbyIsImVtYWlsIjoiZWViZjE5OTNAZ21haWwuY29tIn0.F_wBJTMlWEFMmL3pcjEyCHwo3J-5JmjMK5lzvANsw9vSsuMDe7SvSqIijmQf8k4rPql2FIE9zStaekyV7DdxBpg7la1Lvytt0b-8xkFTGHJE9MadURrk1kxRiYJP6yfyQQsET43HvTxb_LQzMw6f2JGOYGYrlThZ1-PlH_ftHfwZwVjwAYsihEPpaNAUFxiReqBJ8WcjQL3Tfirz9ON06Pxt4wu7BU1fwkFDJPxSlnUpsrPp-Q4OkmXsfgQHFIxo3SoHtUITui3WifJhAwinAdI9IbvMHRG4QqZCt_rgi2cVL7mdwwLZbJNIY02F0fBpoQEV76UUz6PYe1aKz60b4A",
+            "Authorization": "Token eyJraWQiOiJUM3FxbzZBSmNLelVQTENcL2NIcWsrZ0NwXC9KOFltUGRhNjZwTXRQOTRJVUk9IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiI4NjFmMjVhYi0zYjM2LTRkNGQtYmMzNS01ODYzMDllMGZlOTMiLCJldmVudF9pZCI6ImEwNDhjMjllLTQ1NmMtNGY0Ni1iZGZhLTBhNGUyYjliZTY0ZCIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4iLCJhdXRoX3RpbWUiOjE1OTQyNjE5MTgsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC51cy1lYXN0LTEuYW1hem9uYXdzLmNvbVwvdXMtZWFzdC0xXzN5MlpWTGFKSSIsImV4cCI6MTU5NDI2NTUxOCwiaWF0IjoxNTk0MjYxOTE4LCJqdGkiOiI3N2ExYTdhYy1hZGU0LTRjYzktODc3Yy1hZTA3ZTE2NjNiMmQiLCJjbGllbnRfaWQiOiI0dmcycGE3c3U3bWk0ZTRidWVtYWI3dnV2bCIsInVzZXJuYW1lIjoiODYxZjI1YWItM2IzNi00ZDRkLWJjMzUtNTg2MzA5ZTBmZTkzIn0.AjgiYy8fSXrsIlOq6sIbNJnEN1oRzB6Kbkx3btDSzJ5sDCipLqujOy8impw8vYts0wWaUJ5SrHjqoZvmXMj5LxSizpTG8ZEkohbEAYXEWGQW8U-oKNoN9XhbKz_WpwS-uCj34dlYaXrKcfb-6dNUVpkfoU5plL268W_PW8bRiKUu2YJrBSq6jn0_A8M2N2XDjwdaPdrC_j-6DQytX4TDWPpoGf3t29G6iJADKiJI4TYPsS_mc7A1lOajWnLXVwNGRXWvgNcbmyJ_mOi6cyF2_RHT-BGoYZZ7-V3OyFZb5tKBdw_ejpgi_MxXPkvNozH1Lm8ByYuDvzFF_GmX9TA00A",
             "CloudFront-Forwarded-Proto": "https",
             "CloudFront-Is-Desktop-Viewer": "true",
             "CloudFront-Is-Mobile-Viewer": "false",
@@ -89,11 +95,11 @@ if __name__ == "__main__":
             "sec-fetch-dest": "empty",
             "sec-fetch-mode": "cors",
             "sec-fetch-site": "cross-site",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36",
-            "Via": "2.0 0c9159c06691f6f55df2ceb396d9fd79.cloudfront.net (CloudFront)",
-            "X-Amz-Cf-Id": "d4JSz3NDLcYbSH59oVzPi3QLkupJkNATzRLKkP7kCxQU9FgeTz4Arw==",
-            "X-Amzn-Trace-Id": "Root=1-5eec2691-660d1a1db186375384de5b45",
-            "X-Forwarded-For": "134.56.152.161, 52.46.25.102",
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
+            "Via": "2.0 fc1009b8e45427207e2a571827e9dd24.cloudfront.net (CloudFront)",
+            "X-Amz-Cf-Id": "KqnFZoWleZzYCfcsoCvdeBwGbZYJQhsShkJ8E33wE5ARX-t7tkCk5Q==",
+            "X-Amzn-Trace-Id": "Root=1-5f0681a5-4d957e7484bf62e8e753141d",
+            "X-Forwarded-For": "134.56.152.161, 64.252.129.146",
             "X-Forwarded-Port": "443",
             "X-Forwarded-Proto": "https",
         },
@@ -102,7 +108,7 @@ if __name__ == "__main__":
             "Accept-Encoding": ["gzip, deflate, br"],
             "Accept-Language": ["en-US,en;q=0.9"],
             "Authorization": [
-                "Token eyJraWQiOiJBUTcrbDNJT2ZGZzhjSHN5dDExMlwvR3BSWEM4VHV4SUtiK1pqSGd2MFpmcz0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJlY2MxZTM0NC0xMDBlLTRiZTUtOWQ2NS1kYTlmMTk4YmRmMjIiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6XC9cL2NvZ25pdG8taWRwLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tXC91cy1lYXN0LTFfRHRXUzBqWW44IiwicGhvbmVfbnVtYmVyX3ZlcmlmaWVkIjpmYWxzZSwiY29nbml0bzp1c2VybmFtZSI6ImVjYzFlMzQ0LTEwMGUtNGJlNS05ZDY1LWRhOWYxOThiZGYyMiIsImdpdmVuX25hbWUiOiJFdWdlbmlvIiwiYXVkIjoiYWxpaTU4MDQxazcyaGh0OGdiN3IyY2duMiIsImV2ZW50X2lkIjoiOTQ1MTNlNTctNjA1Yi00YmVmLWFiOWYtNDU1ODZiNGYwZWI4IiwidXBkYXRlZF9hdCI6MTU5MjQ1NzUyOTczMCwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE1OTI1MzQ2NjYsInBob25lX251bWJlciI6IisxNzg2Njc1ODA1NCIsImV4cCI6MTU5MjUzODI2NiwiaWF0IjoxNTkyNTM0NjY2LCJmYW1pbHlfbmFtZSI6IkJyZWlqbyIsImVtYWlsIjoiZWViZjE5OTNAZ21haWwuY29tIn0.F_wBJTMlWEFMmL3pcjEyCHwo3J-5JmjMK5lzvANsw9vSsuMDe7SvSqIijmQf8k4rPql2FIE9zStaekyV7DdxBpg7la1Lvytt0b-8xkFTGHJE9MadURrk1kxRiYJP6yfyQQsET43HvTxb_LQzMw6f2JGOYGYrlThZ1-PlH_ftHfwZwVjwAYsihEPpaNAUFxiReqBJ8WcjQL3Tfirz9ON06Pxt4wu7BU1fwkFDJPxSlnUpsrPp-Q4OkmXsfgQHFIxo3SoHtUITui3WifJhAwinAdI9IbvMHRG4QqZCt_rgi2cVL7mdwwLZbJNIY02F0fBpoQEV76UUz6PYe1aKz60b4A"
+                "Token eyJraWQiOiJUM3FxbzZBSmNLelVQTENcL2NIcWsrZ0NwXC9KOFltUGRhNjZwTXRQOTRJVUk9IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiI4NjFmMjVhYi0zYjM2LTRkNGQtYmMzNS01ODYzMDllMGZlOTMiLCJldmVudF9pZCI6ImEwNDhjMjllLTQ1NmMtNGY0Ni1iZGZhLTBhNGUyYjliZTY0ZCIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4iLCJhdXRoX3RpbWUiOjE1OTQyNjE5MTgsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC51cy1lYXN0LTEuYW1hem9uYXdzLmNvbVwvdXMtZWFzdC0xXzN5MlpWTGFKSSIsImV4cCI6MTU5NDI2NTUxOCwiaWF0IjoxNTk0MjYxOTE4LCJqdGkiOiI3N2ExYTdhYy1hZGU0LTRjYzktODc3Yy1hZTA3ZTE2NjNiMmQiLCJjbGllbnRfaWQiOiI0dmcycGE3c3U3bWk0ZTRidWVtYWI3dnV2bCIsInVzZXJuYW1lIjoiODYxZjI1YWItM2IzNi00ZDRkLWJjMzUtNTg2MzA5ZTBmZTkzIn0.AjgiYy8fSXrsIlOq6sIbNJnEN1oRzB6Kbkx3btDSzJ5sDCipLqujOy8impw8vYts0wWaUJ5SrHjqoZvmXMj5LxSizpTG8ZEkohbEAYXEWGQW8U-oKNoN9XhbKz_WpwS-uCj34dlYaXrKcfb-6dNUVpkfoU5plL268W_PW8bRiKUu2YJrBSq6jn0_A8M2N2XDjwdaPdrC_j-6DQytX4TDWPpoGf3t29G6iJADKiJI4TYPsS_mc7A1lOajWnLXVwNGRXWvgNcbmyJ_mOi6cyF2_RHT-BGoYZZ7-V3OyFZb5tKBdw_ejpgi_MxXPkvNozH1Lm8ByYuDvzFF_GmX9TA00A"
             ],
             "CloudFront-Forwarded-Proto": ["https"],
             "CloudFront-Is-Desktop-Viewer": ["true"],
@@ -117,57 +123,58 @@ if __name__ == "__main__":
             "sec-fetch-mode": ["cors"],
             "sec-fetch-site": ["cross-site"],
             "User-Agent": [
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36"
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36"
             ],
-            "Via": ["2.0 0c9159c06691f6f55df2ceb396d9fd79.cloudfront.net (CloudFront)"],
-            "X-Amz-Cf-Id": ["d4JSz3NDLcYbSH59oVzPi3QLkupJkNATzRLKkP7kCxQU9FgeTz4Arw=="],
-            "X-Amzn-Trace-Id": ["Root=1-5eec2691-660d1a1db186375384de5b45"],
-            "X-Forwarded-For": ["134.56.152.161, 52.46.25.102"],
+            "Via": ["2.0 fc1009b8e45427207e2a571827e9dd24.cloudfront.net (CloudFront)"],
+            "X-Amz-Cf-Id": ["KqnFZoWleZzYCfcsoCvdeBwGbZYJQhsShkJ8E33wE5ARX-t7tkCk5Q=="],
+            "X-Amzn-Trace-Id": ["Root=1-5f0681a5-4d957e7484bf62e8e753141d"],
+            "X-Forwarded-For": ["134.56.152.161, 64.252.129.146"],
             "X-Forwarded-Port": ["443"],
             "X-Forwarded-Proto": ["https"],
         },
-        "queryStringParameters": "None",
-        "multiValueQueryStringParameters": "None",
-        "pathParameters": "None",
-        "stageVariables": "None",
+        "queryStringParameters": None,
+        "multiValueQueryStringParameters": None,
+        "pathParameters": None,
+        "stageVariables": None,
         "requestContext": {
             "resourceId": "ovux92",
             "authorizer": {
                 "number": "1",
                 "bool": "true",
-                "principalId": "9aaa508c-511d-4a09-91e2-1a44e1804d57",
-                "integrationLatency": 1083,
+                "principalId": "861f25ab-3b36-4d4d-bc35-586309e0fe93",
+                "integrationLatency": 857,
                 "key": "value",
             },
             "resourcePath": "/users",
             "httpMethod": "GET",
-            "extendedRequestId": "OWr2yGyeoAMFZEA=",
-            "requestTime": "19/Jun/2020:02:44:33 +0000",
+            "extendedRequestId": "PYkx0FXjoAMFd3Q=",
+            "requestTime": "09/Jul/2020:02:32:05 +0000",
             "path": "/prod/users/",
             "accountId": "112646120612",
             "protocol": "HTTP/1.1",
             "stage": "prod",
             "domainPrefix": "2qoob0tpqb",
-            "requestTimeEpoch": 1592534673702,
-            "requestId": "eb0b082e-5b3e-441d-92d3-e271d96f4443",
+            "requestTimeEpoch": 1594261925160,
+            "requestId": "be9ec84b-2050-49d5-855f-9b3c4d9880ac",
             "identity": {
-                "cognitoIdentityPoolId": "None",
-                "accountId": "None",
-                "cognitoIdentityId": "None",
-                "caller": "None",
+                "cognitoIdentityPoolId": None,
+                "accountId": None,
+                "cognitoIdentityId": None,
+                "caller": None,
                 "sourceIp": "134.56.152.161",
-                "principalOrgId": "None",
-                "accessKey": "None",
-                "cognitoAuthenticationType": "None",
-                "cognitoAuthenticationProvider": "None",
-                "userArn": "None",
-                "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36",
-                "user": "None",
+                "principalOrgId": None,
+                "accessKey": None,
+                "cognitoAuthenticationType": None,
+                "cognitoAuthenticationProvider": None,
+                "userArn": None,
+                "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
+                "user": None,
             },
             "domainName": "2qoob0tpqb.execute-api.us-east-1.amazonaws.com",
             "apiId": "2qoob0tpqb",
         },
-        "body": "None",
+        "body": None,
         "isBase64Encoded": False,
     }
-    lambda_handler(event=lambda_event, context={})
+    response = lambda_handler(event=lambda_event, context={})
+    logger.info(response)

@@ -15,6 +15,7 @@ from multacdkrecipies import (
 from src.infrastructure.configs import (
     analytics_config,
     base_configs,
+    device_gateway_config,
     serverless_rest_api_configs,
     user_backend_config,
 )
@@ -141,6 +142,40 @@ class UserApisBackend(core.Stack):
         )
 
 
+class DeviceGatewayStack(core.Stack):
+    def __init__(self, scope: core.Construct, id: str, config=None, **kwargs) -> None:
+        super().__init__(scope, id, **kwargs)
+        self._device_gateway_api_ssm = AwsSsmString(
+            self,
+            id=f"ServerlessDeviceGateway-Ssm-{config['environ']}",
+            prefix="multa_backend",
+            environment=config["environ"],
+            configuration=config["config"]["SSM_CONFIGURATION"],
+        )
+
+        self._device_gateway_api_lambdalayer = AwsLambdaLayerVenv(
+            self,
+            id=f"ServerlessDeviceGateway-LambdaLayer-{config['environ']}",
+            prefix="multa_backend",
+            environment=config["environ"],
+            configuration=config["config"]["LAMBDA_LAYER_CONFIGURATION"],
+        )
+        layer_arn = self._device_gateway_api_lambdalayer.lambda_layer.layer_version_arn
+
+        for function in config["config"]["APIGATEWAY_CONFIGURATION"]["api"]["resource_trees"]:
+            function["handler"]["layers"].append(layer_arn)
+
+        self._device_gateway_api = AwsApiGatewayLambdaPipes(
+            self,
+            id=f"ServerlessDeviceGateway-{config['environ']}",
+            prefix="multa_backend",
+            environment=config["environ"],
+            configuration=config["config"]["APIGATEWAY_CONFIGURATION"],
+        )
+
+        self._device_gateway_api_ssm.grant_read(role=self._device_gateway_api.handler_function.role)
+
+
 class AnalyticsStack(core.Stack):
     """
     Cold Analytics Stack for MultaMetrics Backend. Will contain resources necessary for a storage, ingestion and
@@ -229,6 +264,10 @@ for environment, configuration in serverless_rest_api_configs.SERVERLESS_REST_AP
     ]
     config = dict(environ=environment, config=configuration)
     UserApisBackend(app, id=f"UserApisBackend-{environment}", config=config)
+
+for environment, configuration in device_gateway_config.DEVICE_GATEWAY_CONFIGS.items():
+    config = dict(environ=environment, config=configuration)
+    DeviceGatewayStack(app, id=f"DeviceGateway-{environment}", config=config)
 
 for environment, configuration in analytics_config.ANALYTICS_CONFIGS.items():
     config = dict(environ=environment, config=configuration)

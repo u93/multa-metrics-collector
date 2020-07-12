@@ -1,7 +1,5 @@
-import os
 import traceback
 
-from handlers.users_backend.cognito import CognitoHandler
 from handlers.users_backend.models import Organizations, Users, UserOrganizationRelation
 from settings.aws import COGNITO_TRIGGERS
 from settings.logs import Logger
@@ -13,7 +11,6 @@ logger = logs_handler.get_logger()
 
 def post_confirmation_signup(event):
     cognito_username = event["userName"]
-    # cognito_handler = CognitoHandler()
     try:
         user_attributes = event["request"]["userAttributes"]
         cognito_user_email = user_attributes["email"]
@@ -23,18 +20,21 @@ def post_confirmation_signup(event):
         user_role = client_metadata.get("role", DEFAULT_SIGNUP_ROLE)
 
         if organization_name is None:
-            # ADD ERROR VALIDATION FOR TRIGGER RESPONSE
-            pass
+            logger.error(f"Organization name not found for user - {cognito_username}")
+            return False
+
+        user_relation = UserOrganizationRelation.get_record_by_id(id_=cognito_username)
+        if user_relation is False:
+            logger.error(f"User/Organization relation not found for user - {cognito_username}")
+            return False
+
         organization = Organizations.create(name=organization_name, plan=DEFAULT_SIGNUP_PLAN, owner=cognito_username)
         user_organization_mapping = UserOrganizationRelation.create(
             user_id=cognito_username, organization_id=organization.id
         )
         user_settings = Users.create(organization_id=organization.id, user_id=cognito_username, role=user_role)
-        logger.info(organization.to_dict())
-        logger.info(user_organization_mapping.to_dict())
-        logger.info(user_settings.to_dict())
     except Exception:
-        logger.error(f"Error creating organization with owner {cognito_username}")
+        logger.error(f"Error creating organization/relations/user - {cognito_username}")
         logger.error(traceback.format_exc())
         return False
     else:

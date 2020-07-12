@@ -14,6 +14,21 @@ logs_handler = Logger()
 logger = logs_handler.get_logger()
 
 
+def get_users_attributes(users_list: list) -> list:
+    parsed_users = list()
+    cognito_handler = CognitoHandler()
+    for user in users_list:
+        cognito_data = cognito_handler.get_user(user_id=user["id"])
+        logger.info(cognito_data)
+        for attribute in cognito_data["user_attributes"]:
+            if attribute["Name"] == "sub":
+                continue
+            user[attribute["Name"]] = attribute["Value"]
+        parsed_users.append(user)
+
+    return parsed_users
+
+
 def parse_user_attributes(attributes: list) -> dict:
     attribute_dict = dict()
     for attribute in attributes:
@@ -23,7 +38,7 @@ def parse_user_attributes(attributes: list) -> dict:
     return attribute_dict
 
 
-def parse_attributes(users_list: list):
+def parse_attributes(users_list: list) -> list:
     parsed_users = list()
     for user in users_list:
         attribute_dict = dict()
@@ -41,7 +56,29 @@ class CognitoHandler(Sts):
         Sts.__init__(self)
         self.cognito_client = boto3.client("cognito-idp")
 
-    def get_user_by_access_token(self, access_token):
+    def check_user(self, email_address: str):
+        response = self.cognito_client.list_users(
+            UserPoolId=USER_POOL_ID, AttributesToGet=[], Limit=10, Filter=f"email = '{email_address}'"
+        )
+        if len(response["Users"]) == 1:
+            return response["Users"]
+        else:
+            return False
+
+    def get_user(self, user_id: str):
+        user_response = dict(user_id=None, user_attributes=None)
+        try:
+            response = self.cognito_client.admin_get_user(UserPoolId=USER_POOL_ID, Username=user_id)
+        except Exception:
+            logger.error("Error getting user by ID")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            user_response["user_id"] = response["Username"]
+            user_response["user_attributes"] = response["UserAttributes"]
+            return user_response
+
+    def get_user_by_access_token(self, access_token: str):
         user_response = dict(user_id=None, user_attributes=None)
         try:
             response = self.cognito_client.get_user(AccessToken=access_token)
@@ -53,15 +90,6 @@ class CognitoHandler(Sts):
             user_response["user_id"] = response["Username"]
             user_response["user_attributes"] = response["UserAttributes"]
             return user_response
-
-    def check_user(self, email_address: str):
-        response = self.cognito_client.list_users(
-            UserPoolId=USER_POOL_ID, AttributesToGet=[], Limit=10, Filter=f"email = '{email_address}'"
-        )
-        if len(response["Users"]) == 1:
-            return response["Users"]
-        else:
-            return False
 
     def list_users(self, pagination_token=None):
         kwargs = {

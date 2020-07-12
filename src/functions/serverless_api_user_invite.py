@@ -1,10 +1,9 @@
-import json
 import traceback
 
 from handlers.users_backend.ses import generate_invite_url, SesHandler
 from handlers.users_backend.cognito import CognitoHandler
-from handlers.users_backend.models import Organizations
-from handlers.utils import base_response
+from handlers.users_backend.models import UserOrganizationRelation
+from handlers.utils import base_response, ApiGwEventParser
 
 from settings.logs import Logger
 
@@ -18,21 +17,26 @@ def get(event, **kwargs):
 
 def post(event, **kwargs):
     try:
-        body = json.loads(event["body"])
-        cognito_user_email = body["emailAddress"]
-        user_organization_id = body["organizationId"]
-        organization_data = Organizations.get_record_by_id(id_=user_organization_id)
-        if organization_data is False:
-            return False
+        request_parser = ApiGwEventParser(event=event)
+        request_parser.parse()
 
+        logger.info(request_parser.user_id)
+        user_organization_mapping = UserOrganizationRelation.get_record_by_id(id_=request_parser.user_id)
+        if user_organization_mapping is False:
+            logger.error("Error getting current user info...")
+            return False
+        user_organization = user_organization_mapping.to_dict()["organizationId"]
+
+        cognito_user_email = request_parser.body["emailAddress"]
         cognito_handler = CognitoHandler()
         is_email_valid = cognito_handler.check_user(email_address=cognito_user_email)
         if is_email_valid is not False:
             return False
 
-        invite_url = generate_invite_url(email_address=cognito_user_email, organization_id=user_organization_id)
+        invite_url = generate_invite_url(email_address=cognito_user_email, organization_id=user_organization)
         ses_handler = SesHandler()
         email_sent = ses_handler.send_invite_email(invite_url=invite_url, recipient=cognito_user_email)
+        logger.info(email_sent)
         if email_sent is False:
             return False
 
@@ -73,105 +77,98 @@ def lambda_handler(event, context):
 
 if __name__ == "__main__":
     lambda_event = {
-        "resource": "/users",
-        "path": "/users/",
+        "resource": "/user-invite",
+        "path": "/user-invite/",
         "httpMethod": "POST",
         "headers": {
-            "Accept": "application/json, text/plain, */*",
+            "Accept": "*/*",
             "Accept-Encoding": "gzip, deflate, br",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Authorization": "Token eyJraWQiOiJBUTcrbDNJT2ZGZzhjSHN5dDExMlwvR3BSWEM4VHV4SUtiK1pqSGd2MFpmcz0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJlY2MxZTM0NC0xMDBlLTRiZTUtOWQ2NS1kYTlmMTk4YmRmMjIiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6XC9cL2NvZ25pdG8taWRwLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tXC91cy1lYXN0LTFfRHRXUzBqWW44IiwicGhvbmVfbnVtYmVyX3ZlcmlmaWVkIjpmYWxzZSwiY29nbml0bzp1c2VybmFtZSI6ImVjYzFlMzQ0LTEwMGUtNGJlNS05ZDY1LWRhOWYxOThiZGYyMiIsImdpdmVuX25hbWUiOiJFdWdlbmlvIiwiYXVkIjoiYWxpaTU4MDQxazcyaGh0OGdiN3IyY2duMiIsImV2ZW50X2lkIjoiOTQ1MTNlNTctNjA1Yi00YmVmLWFiOWYtNDU1ODZiNGYwZWI4IiwidXBkYXRlZF9hdCI6MTU5MjQ1NzUyOTczMCwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE1OTI1MzQ2NjYsInBob25lX251bWJlciI6IisxNzg2Njc1ODA1NCIsImV4cCI6MTU5MjUzODI2NiwiaWF0IjoxNTkyNTM0NjY2LCJmYW1pbHlfbmFtZSI6IkJyZWlqbyIsImVtYWlsIjoiZWViZjE5OTNAZ21haWwuY29tIn0.F_wBJTMlWEFMmL3pcjEyCHwo3J-5JmjMK5lzvANsw9vSsuMDe7SvSqIijmQf8k4rPql2FIE9zStaekyV7DdxBpg7la1Lvytt0b-8xkFTGHJE9MadURrk1kxRiYJP6yfyQQsET43HvTxb_LQzMw6f2JGOYGYrlThZ1-PlH_ftHfwZwVjwAYsihEPpaNAUFxiReqBJ8WcjQL3Tfirz9ON06Pxt4wu7BU1fwkFDJPxSlnUpsrPp-Q4OkmXsfgQHFIxo3SoHtUITui3WifJhAwinAdI9IbvMHRG4QqZCt_rgi2cVL7mdwwLZbJNIY02F0fBpoQEV76UUz6PYe1aKz60b4A",
+            "Authorization": "Token eyJraWQiOiJUM3FxbzZBSmNLelVQTENcL2NIcWsrZ0NwXC9KOFltUGRhNjZwTXRQOTRJVUk9IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiI1OGFkNDY4Yi1iYjNjLTRiMmUtYjdiMS04MzU1OTZkMDBiZDEiLCJldmVudF9pZCI6IjMyZTdlN2I4LTZmOWUtNDhkYy05OGI2LTc1ZGFiNGViZGYxNCIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4iLCJhdXRoX3RpbWUiOjE1OTM5ODkwOTIsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC51cy1lYXN0LTEuYW1hem9uYXdzLmNvbVwvdXMtZWFzdC0xXzN5MlpWTGFKSSIsImV4cCI6MTU5Mzk5MjY5MiwiaWF0IjoxNTkzOTg5MDkyLCJqdGkiOiJhYWQ5MjNmOS1mZGVmLTRhNmYtYjY2NC0xZTBjNGU0MjA1YjUiLCJjbGllbnRfaWQiOiI0dmcycGE3c3U3bWk0ZTRidWVtYWI3dnV2bCIsInVzZXJuYW1lIjoiNThhZDQ2OGItYmIzYy00YjJlLWI3YjEtODM1NTk2ZDAwYmQxIn0.iWfmmg57Pg6Ed4RDncdKfQKvpT74uCatP_Ad8ssp5Rg04LfE_swRk1ZI6DsLjhHOcK0ip7rZvcBC2EBh9ISsbSM1uB9L0EluLt3SG_rXmIusut-TQLL9tTj3w95MoLFBOjldhlTY00mgPg7AzBsnlGCU9wRJ-0ymkjhln2a4p7YWDAGAMDbdTIDK0FbtWE-plEBKBFztS0AnkzIQscfNE8KPGdxHS2fpvtqQ6u3iWqdt_Z14lNgCh2EiYtjju0amLO5aUmO5cUW6Td3YcYxzhzgzaUyCz0huQ74oTDKD4L9vb92NHMopjYePUwX9H2RbxoighG7iIZfVZpGMtlkm0A",
+            "Cache-Control": "no-cache",
             "CloudFront-Forwarded-Proto": "https",
             "CloudFront-Is-Desktop-Viewer": "true",
             "CloudFront-Is-Mobile-Viewer": "false",
             "CloudFront-Is-SmartTV-Viewer": "false",
             "CloudFront-Is-Tablet-Viewer": "false",
             "CloudFront-Viewer-Country": "US",
+            "Content-Type": "application/json",
             "Host": "2qoob0tpqb.execute-api.us-east-1.amazonaws.com",
-            "origin": "https://dev.d14258l1f04l0x.amplifyapp.com",
-            "Referer": "https://dev.d14258l1f04l0x.amplifyapp.com/settings",
-            "sec-fetch-dest": "empty",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-site": "cross-site",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36",
-            "Via": "2.0 0c9159c06691f6f55df2ceb396d9fd79.cloudfront.net (CloudFront)",
-            "X-Amz-Cf-Id": "d4JSz3NDLcYbSH59oVzPi3QLkupJkNATzRLKkP7kCxQU9FgeTz4Arw==",
-            "X-Amzn-Trace-Id": "Root=1-5eec2691-660d1a1db186375384de5b45",
-            "X-Forwarded-For": "134.56.152.161, 52.46.25.102",
+            "Postman-Token": "bbe209e7-65bd-436b-8ed4-a48eb6ec2516",
+            "User-Agent": "PostmanRuntime/7.26.1",
+            "Via": "1.1 2f003521460ce460cb069e0d2b93e692.cloudfront.net (CloudFront)",
+            "X-Amz-Cf-Id": "1aqsj72IOY_eLzGi39ErJgJ70ecTMjRdDYa1KtsP8Xf6NStW_pe2hQ==",
+            "X-Amzn-Trace-Id": "Root=1-5f025829-2d54049cf91f7a7c3e45f3a8",
+            "X-Forwarded-For": "134.56.152.161, 52.46.25.152",
             "X-Forwarded-Port": "443",
             "X-Forwarded-Proto": "https",
         },
         "multiValueHeaders": {
-            "Accept": ["application/json, text/plain, */*"],
+            "Accept": ["*/*"],
             "Accept-Encoding": ["gzip, deflate, br"],
-            "Accept-Language": ["en-US,en;q=0.9"],
             "Authorization": [
-                "Token eyJraWQiOiJBUTcrbDNJT2ZGZzhjSHN5dDExMlwvR3BSWEM4VHV4SUtiK1pqSGd2MFpmcz0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJlY2MxZTM0NC0xMDBlLTRiZTUtOWQ2NS1kYTlmMTk4YmRmMjIiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6XC9cL2NvZ25pdG8taWRwLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tXC91cy1lYXN0LTFfRHRXUzBqWW44IiwicGhvbmVfbnVtYmVyX3ZlcmlmaWVkIjpmYWxzZSwiY29nbml0bzp1c2VybmFtZSI6ImVjYzFlMzQ0LTEwMGUtNGJlNS05ZDY1LWRhOWYxOThiZGYyMiIsImdpdmVuX25hbWUiOiJFdWdlbmlvIiwiYXVkIjoiYWxpaTU4MDQxazcyaGh0OGdiN3IyY2duMiIsImV2ZW50X2lkIjoiOTQ1MTNlNTctNjA1Yi00YmVmLWFiOWYtNDU1ODZiNGYwZWI4IiwidXBkYXRlZF9hdCI6MTU5MjQ1NzUyOTczMCwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE1OTI1MzQ2NjYsInBob25lX251bWJlciI6IisxNzg2Njc1ODA1NCIsImV4cCI6MTU5MjUzODI2NiwiaWF0IjoxNTkyNTM0NjY2LCJmYW1pbHlfbmFtZSI6IkJyZWlqbyIsImVtYWlsIjoiZWViZjE5OTNAZ21haWwuY29tIn0.F_wBJTMlWEFMmL3pcjEyCHwo3J-5JmjMK5lzvANsw9vSsuMDe7SvSqIijmQf8k4rPql2FIE9zStaekyV7DdxBpg7la1Lvytt0b-8xkFTGHJE9MadURrk1kxRiYJP6yfyQQsET43HvTxb_LQzMw6f2JGOYGYrlThZ1-PlH_ftHfwZwVjwAYsihEPpaNAUFxiReqBJ8WcjQL3Tfirz9ON06Pxt4wu7BU1fwkFDJPxSlnUpsrPp-Q4OkmXsfgQHFIxo3SoHtUITui3WifJhAwinAdI9IbvMHRG4QqZCt_rgi2cVL7mdwwLZbJNIY02F0fBpoQEV76UUz6PYe1aKz60b4A"
+                "Token eyJraWQiOiJUM3FxbzZBSmNLelVQTENcL2NIcWsrZ0NwXC9KOFltUGRhNjZwTXRQOTRJVUk9IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiI1OGFkNDY4Yi1iYjNjLTRiMmUtYjdiMS04MzU1OTZkMDBiZDEiLCJldmVudF9pZCI6IjMyZTdlN2I4LTZmOWUtNDhkYy05OGI2LTc1ZGFiNGViZGYxNCIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4iLCJhdXRoX3RpbWUiOjE1OTM5ODkwOTIsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC51cy1lYXN0LTEuYW1hem9uYXdzLmNvbVwvdXMtZWFzdC0xXzN5MlpWTGFKSSIsImV4cCI6MTU5Mzk5MjY5MiwiaWF0IjoxNTkzOTg5MDkyLCJqdGkiOiJhYWQ5MjNmOS1mZGVmLTRhNmYtYjY2NC0xZTBjNGU0MjA1YjUiLCJjbGllbnRfaWQiOiI0dmcycGE3c3U3bWk0ZTRidWVtYWI3dnV2bCIsInVzZXJuYW1lIjoiNThhZDQ2OGItYmIzYy00YjJlLWI3YjEtODM1NTk2ZDAwYmQxIn0.iWfmmg57Pg6Ed4RDncdKfQKvpT74uCatP_Ad8ssp5Rg04LfE_swRk1ZI6DsLjhHOcK0ip7rZvcBC2EBh9ISsbSM1uB9L0EluLt3SG_rXmIusut-TQLL9tTj3w95MoLFBOjldhlTY00mgPg7AzBsnlGCU9wRJ-0ymkjhln2a4p7YWDAGAMDbdTIDK0FbtWE-plEBKBFztS0AnkzIQscfNE8KPGdxHS2fpvtqQ6u3iWqdt_Z14lNgCh2EiYtjju0amLO5aUmO5cUW6Td3YcYxzhzgzaUyCz0huQ74oTDKD4L9vb92NHMopjYePUwX9H2RbxoighG7iIZfVZpGMtlkm0A"
             ],
+            "Cache-Control": ["no-cache"],
             "CloudFront-Forwarded-Proto": ["https"],
             "CloudFront-Is-Desktop-Viewer": ["true"],
             "CloudFront-Is-Mobile-Viewer": ["false"],
             "CloudFront-Is-SmartTV-Viewer": ["false"],
             "CloudFront-Is-Tablet-Viewer": ["false"],
             "CloudFront-Viewer-Country": ["US"],
+            "Content-Type": ["application/json"],
             "Host": ["2qoob0tpqb.execute-api.us-east-1.amazonaws.com"],
-            "origin": ["https://dev.d14258l1f04l0x.amplifyapp.com"],
-            "Referer": ["https://dev.d14258l1f04l0x.amplifyapp.com/settings"],
-            "sec-fetch-dest": ["empty"],
-            "sec-fetch-mode": ["cors"],
-            "sec-fetch-site": ["cross-site"],
-            "User-Agent": [
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36"
-            ],
-            "Via": ["2.0 0c9159c06691f6f55df2ceb396d9fd79.cloudfront.net (CloudFront)"],
-            "X-Amz-Cf-Id": ["d4JSz3NDLcYbSH59oVzPi3QLkupJkNATzRLKkP7kCxQU9FgeTz4Arw=="],
-            "X-Amzn-Trace-Id": ["Root=1-5eec2691-660d1a1db186375384de5b45"],
-            "X-Forwarded-For": ["134.56.152.161, 52.46.25.102"],
+            "Postman-Token": ["bbe209e7-65bd-436b-8ed4-a48eb6ec2516"],
+            "User-Agent": ["PostmanRuntime/7.26.1"],
+            "Via": ["1.1 2f003521460ce460cb069e0d2b93e692.cloudfront.net (CloudFront)"],
+            "X-Amz-Cf-Id": ["1aqsj72IOY_eLzGi39ErJgJ70ecTMjRdDYa1KtsP8Xf6NStW_pe2hQ=="],
+            "X-Amzn-Trace-Id": ["Root=1-5f025829-2d54049cf91f7a7c3e45f3a8"],
+            "X-Forwarded-For": ["134.56.152.161, 52.46.25.152"],
             "X-Forwarded-Port": ["443"],
             "X-Forwarded-Proto": ["https"],
         },
-        "queryStringParameters": "None",
-        "multiValueQueryStringParameters": "None",
-        "pathParameters": "None",
-        "stageVariables": "None",
+        "queryStringParameters": None,
+        "multiValueQueryStringParameters": None,
+        "pathParameters": None,
+        "stageVariables": None,
         "requestContext": {
-            "resourceId": "ovux92",
+            "resourceId": "2j03vq",
             "authorizer": {
                 "number": "1",
                 "bool": "true",
-                "principalId": "9aaa508c-511d-4a09-91e2-1a44e1804d57",
-                "integrationLatency": 1083,
+                "principalId": "861f25ab-3b36-4d4d-bc35-586309e0fe93",
+                "integrationLatency": 920,
                 "key": "value",
             },
             "resourcePath": "/user-invite",
             "httpMethod": "POST",
-            "extendedRequestId": "OWr2yGyeoAMFZEA=",
-            "requestTime": "19/Jun/2020:02:44:33 +0000",
-            "path": "/prod/users/",
+            "extendedRequestId": "POK2eEnioAMFuUA=",
+            "requestTime": "05/Jul/2020:22:46:01 +0000",
+            "path": "/prod/user-invite/",
             "accountId": "112646120612",
             "protocol": "HTTP/1.1",
             "stage": "prod",
             "domainPrefix": "2qoob0tpqb",
-            "requestTimeEpoch": 1592534673702,
-            "requestId": "eb0b082e-5b3e-441d-92d3-e271d96f4443",
+            "requestTimeEpoch": 1593989161322,
+            "requestId": "e9849d9c-f5ac-496b-be6a-b4491e48c62f",
             "identity": {
-                "cognitoIdentityPoolId": "None",
-                "accountId": "None",
-                "cognitoIdentityId": "None",
-                "caller": "None",
+                "cognitoIdentityPoolId": None,
+                "accountId": None,
+                "cognitoIdentityId": None,
+                "caller": None,
                 "sourceIp": "134.56.152.161",
-                "principalOrgId": "None",
-                "accessKey": "None",
-                "cognitoAuthenticationType": "None",
-                "cognitoAuthenticationProvider": "None",
-                "userArn": "None",
-                "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36",
-                "user": "None",
+                "principalOrgId": None,
+                "accessKey": None,
+                "cognitoAuthenticationType": None,
+                "cognitoAuthenticationProvider": None,
+                "userArn": None,
+                "userAgent": "PostmanRuntime/7.26.1",
+                "user": None,
             },
             "domainName": "2qoob0tpqb.execute-api.us-east-1.amazonaws.com",
             "apiId": "2qoob0tpqb",
         },
-        "body": "None",
+        "body": '{\n    "emailAddress": "eugeniobreijo2016@gmail.com",\n    "organizationId": "90856bba-45a5-49de-ab09-51361fcc276e"\n}',
         "isBase64Encoded": False,
     }
-    lambda_handler(event=lambda_event, context={})
+    response = lambda_handler(event=lambda_event, context={})
+    logger.info(response)
