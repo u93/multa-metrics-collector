@@ -37,6 +37,7 @@ SERVERLESS_REST_API_CONFIGS = {
                         "timeout": 10,
                         "environment_vars": {
                             "ENVIRONMENT": "dev",
+                            "REGION": "us-east-1",
                             "USER_POOL_ID": "us-east-1_3y2ZVLaJI",
                             "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                             "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
@@ -60,6 +61,7 @@ SERVERLESS_REST_API_CONFIGS = {
                             "timeout": 10,
                             "environment_vars": {
                                 "ENVIRONMENT": "dev",
+                                "REGION": "us-east-1",
                                 "USER_POOL_ID": "us-east-1_3y2ZVLaJI",
                                 "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                                 "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
@@ -82,6 +84,7 @@ SERVERLESS_REST_API_CONFIGS = {
                             "timeout": 10,
                             "environment_vars": {
                                 "ENVIRONMENT": "dev",
+                                "REGION": "us-east-1",
                                 "USER_POOL_ID": "us-east-1_3y2ZVLaJI",
                                 "INVITE_EMAIL_SENDER": "eebf1993@gmail.com",
                                 "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
@@ -105,6 +108,7 @@ SERVERLESS_REST_API_CONFIGS = {
                             "timeout": 10,
                             "environment_vars": {
                                 "ENVIRONMENT": "dev",
+                                "REGION": "us-east-1",
                                 "USER_POOL_ID": "us-east-1_3y2ZVLaJI",
                                 "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                                 "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
@@ -126,6 +130,7 @@ SERVERLESS_REST_API_CONFIGS = {
                                 "timeout": 10,
                                 "environment_vars": {
                                     "ENVIRONMENT": "dev",
+                                    "REGION": "us-east-1",
                                     "USER_POOL_ID": "us-east-1_3y2ZVLaJI",
                                     "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                                     "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
@@ -166,6 +171,7 @@ SERVERLESS_REST_API_CONFIGS = {
                             "timeout": 10,
                             "environment_vars": {
                                 "ENVIRONMENT": "dev",
+                                "REGION": "us-east-1",
                                 "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                                 "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                                 "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
@@ -187,6 +193,7 @@ SERVERLESS_REST_API_CONFIGS = {
                             "timeout": 10,
                             "environment_vars": {
                                 "ENVIRONMENT": "dev",
+                                "REGION": "us-east-1",
                                 "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                                 "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                                 "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
@@ -208,6 +215,7 @@ SERVERLESS_REST_API_CONFIGS = {
                             "timeout": 10,
                             "environment_vars": {
                                 "ENVIRONMENT": "dev",
+                                "REGION": "us-east-1",
                                 "USER_POOL_ID": "us-east-1_3y2ZVLaJI",
                                 "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                                 "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
@@ -229,6 +237,7 @@ SERVERLESS_REST_API_CONFIGS = {
                                 "timeout": 10,
                                 "environment_vars": {
                                     "ENVIRONMENT": "dev",
+                                    "REGION": "us-east-1",
                                     "USER_POOL_ID": "us-east-1_3y2ZVLaJI",
                                     "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                                     "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",

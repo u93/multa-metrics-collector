@@ -1,8 +1,4 @@
-from datetime import datetime
-import json
-import time
 import traceback
-import uuid
 
 import boto3
 
@@ -10,7 +6,6 @@ from handlers.common import Sts
 from settings.aws import (
     FRONTEND_BASE_DOMAIN,
     INVITE_EMAIL_BODY_HTML,
-    INVITE_EMAIL_BODY_TEXT,
     INVITE_EMAIL_CHARSET,
     INVITE_EMAIL_SENDER,
     INVITE_EMAIL_SUBJECT,

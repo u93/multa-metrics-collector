@@ -1,6 +1,10 @@
+import hashlib
 import json
+# import uuid
 
 from marshmallow import Schema, fields, validates, ValidationError
+
+from handlers.backend.secrets import get_api_key_secret
 
 
 def base_response(status_code: int, dict_body=None, cors=True):
@@ -12,6 +16,21 @@ def base_response(status_code: int, dict_body=None, cors=True):
         response_dict["body"] = json.dumps(dict_body)
 
     return response_dict
+
+
+class ApiKeysManager:
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def generate_api_key(organization_id: str):
+        salt = get_api_key_secret()
+        return hashlib.sha256(organization_id.encode() + salt.encode()).hexdigest()
+
+    @staticmethod
+    def validate_api_key(organization_id: str, api_key: str):
+        salt = get_api_key_secret()
+        return api_key == hashlib.sha256(organization_id.encode() + salt.encode()).hexdigest()
 
 
 class ApiGwEventParser:

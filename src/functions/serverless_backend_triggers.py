@@ -1,6 +1,6 @@
 import traceback
 
-from handlers.users_backend.models import Organizations, Users, UserOrganizationRelation
+from handlers.backend.models import Organizations, Users, UserOrganizationRelation
 from settings.aws import COGNITO_TRIGGERS
 from settings.logs import Logger
 from settings.models import DEFAULT_SIGNUP_PLAN, DEFAULT_SIGNUP_ROLE

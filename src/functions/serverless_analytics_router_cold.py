@@ -1,8 +1,8 @@
 import json
-import os
+# import os
 import time
 
-from handlers.data_analysis.lambda_functions import LambdaHandler
+from handlers.analytics.lambda_functions import LambdaHandler
 from handlers.utils import base_response
 from settings.aws import ANALYTICS_LAMBDA_ROUTING_MAPPING
 from settings.logs import Logger

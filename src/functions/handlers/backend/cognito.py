@@ -1,8 +1,4 @@
-from datetime import datetime
-import json
-import time
 import traceback
-import uuid
 
 import boto3
 

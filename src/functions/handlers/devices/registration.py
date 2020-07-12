@@ -1,4 +1,3 @@
-import json
 import traceback
 
 from .aws import ThingHandlers, ConfigurationHandler
