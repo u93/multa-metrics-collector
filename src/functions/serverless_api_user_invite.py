@@ -1,8 +1,8 @@
 import traceback
 
-from handlers.users_backend.ses import generate_invite_url, SesHandler
-from handlers.users_backend.cognito import CognitoHandler
-from handlers.users_backend.models import UserOrganizationRelation
+from handlers.backend.ses import generate_invite_url, SesHandler
+from handlers.backend.cognito import CognitoHandler
+from handlers.backend.models import UserOrganizationRelation
 from handlers.utils import base_response, ApiGwEventParser
 
 from settings.logs import Logger

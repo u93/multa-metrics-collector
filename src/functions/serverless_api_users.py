@@ -1,7 +1,7 @@
 import traceback
 
-from handlers.users_backend.cognito import get_users_attributes
-from handlers.users_backend.models import UserOrganizationRelation, Users
+from handlers.backend.cognito import get_users_attributes
+from handlers.backend.models import UserOrganizationRelation, Users
 from handlers.utils import base_response, ApiGwEventParser
 
 from settings.logs import Logger

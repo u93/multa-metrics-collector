@@ -3,17 +3,19 @@ import time
 import traceback
 import uuid
 
-from pynamodb.models import Model
 from pynamodb.attributes import (
     UnicodeAttribute,
     BooleanAttribute,
     NumberAttribute,
-    UnicodeSetAttribute,
-    UTCDateTimeAttribute,
+    # UnicodeSetAttribute,
+    # UTCDateTimeAttribute,
     ListAttribute,
     MapAttribute,
 )
+from pynamodb.indexes import GlobalSecondaryIndex, AllProjection
+from pynamodb.models import Model
 
+from handlers.utils import ApiKeysManager
 from settings.aws import (
     ORGANIZATIONS_TABLE_NAME,
     PLANS_TABLE_NAME,
@@ -29,6 +31,16 @@ logs_handler = Logger()
 logger = logs_handler.logger
 
 
+class ApiKeysIndex(GlobalSecondaryIndex):
+    class Meta:
+        index_name = "api_keys"
+        read_capacity_units = 2
+        write_capacity_units = 1
+        projection = AllProjection()
+
+    api_key = UnicodeAttribute(hash_key=True, null=False)
+
+
 class Organizations(Model):
     class Meta:
         table_name = ORGANIZATIONS_TABLE_NAME
@@ -39,7 +51,8 @@ class Organizations(Model):
     name = UnicodeAttribute(null=False)
     plan = UnicodeAttribute(null=False)
     owner = UnicodeAttribute(null=False)
-    # api_keys = ListAttribute(null=False)
+    api_key_index = ApiKeysIndex()
+    api_key = UnicodeAttribute(null=False)
     is_valid = BooleanAttribute(null=False, default_for_new=True)
     creation_time = NumberAttribute(null=False, default_for_new=round(time.time()))
     billing_time = NumberAttribute(null=True, default_for_new=None)
@@ -58,6 +71,7 @@ class Organizations(Model):
         :return: Class Instance
         """
         cls.validate_table()
+        api_key_manager = ApiKeysManager()
         try:
             if organization_id is None:
                 organization_id = str(uuid.uuid4())
@@ -69,7 +83,7 @@ class Organizations(Model):
                     plan=plan,
                     owner=owner,
                     is_valid=is_valid,
-                    # api_keys=[secrets.token_hex(SERVICE_TOKEN_BYTES)],
+                    api_key=api_key_manager.generate_api_key(organization_id=organization_id),
                     creation_time=round(time.time()),
                     last_updated=round(time.time()),
                     billing_time=billing_time,
@@ -82,12 +96,13 @@ class Organizations(Model):
                     plan=plan,
                     owner=owner,
                     is_valid=is_valid,
-                    # api_keys=[secrets.token_hex(SERVICE_TOKEN_BYTES)],
+                    api_key=api_key_manager.generate_api_key(organization_id=organization_id),
                     creation_time=round(time.time()),
                     last_updated=round(time.time()),
                     billing_time=billing_time,
                 )
             organization.save()
+
         except Exception:
             logger.error("Error SAVING new ORGANIZATION")
             logger.error(traceback.format_exc())
@@ -137,18 +152,57 @@ class Organizations(Model):
             return False
 
     @classmethod
-    def get_records(cls, last_evaluated_key=None):
+    def get_records(cls, organization_id: str, last_evaluated_key=None):
         cls.validate_table()
+        records = list()
         try:
-            organizations = cls.scan(last_evaluated_key=last_evaluated_key, limit=MAX_SIZE_PER_PAGE)
-            organizations_last_evaluated_key = organizations.last_evaluated_key
-            organizations_total = cls.count()
+            # users = cls.scan(last_evaluated_key=last_evaluated_key, limit=MAX_SIZE_PER_PAGE)
+            kwargs = dict(
+                hash_key=organization_id,
+                range_key_condition=Users.setting_id.startswith(COMPONENT_IDS["ORGANIZATION"]),
+                limit=MAX_SIZE_PER_PAGE,
+            )
+            while True:
+                user_records = cls.query(**kwargs)
+                records.extend(user_records)
+                if user_records.last_evaluated_key is not None:
+                    kwargs["last_evaluated_key"] = last_evaluated_key
+                else:
+                    break
+
+            total_elements = cls.count()
         except Exception:
-            logger.error("Error SCANNING all PLANs")
+            logger.error("Error GETTING all USERs")
+            logger.error(traceback.format_exc())
+            logger.error(records)
+            return False
+        else:
+            return records, total_elements
+
+    @classmethod
+    def get_all_organization_records(cls, last_evaluated_key=None):
+        cls.validate_table()
+        records = list()
+        try:
+            kwargs = dict(
+                limit=MAX_SIZE_PER_PAGE,
+                filter_condition=Organizations.setting_id.startswith(COMPONENT_IDS["ORGANIZATION"])
+            )
+            while True:
+                organization_records = cls.scan(**kwargs)
+                records.extend(organization_records)
+                if organization_records.last_evaluated_key is not None:
+                    kwargs["last_evaluated_key"] = last_evaluated_key
+                else:
+                    break
+
+            total_elements = cls.count()
+        except Exception:
+            logger.error("Error SCANNING all ORGANIZATIONs")
             logger.error(traceback.format_exc())
             return False
         else:
-            return organizations, organizations_last_evaluated_key, organizations_total
+            return records, total_elements
 
     @staticmethod
     def records_to_dict(records):
@@ -161,23 +215,26 @@ class Organizations(Model):
         else:
             return dict_records
 
-    def update_record(self, **kwargs):
+    def update_record(self, values: list):
         self.validate_table()
         try:
             action_list = list()
-            for attr, value in kwargs.items():
-                action = getattr(self, attr, None)
-                if action is None:
+            for value in values:
+                attribute = self.get_attributes().get(value["attribute"])
+                if attribute is None:
                     continue
-                else:
-                    action.set(value)
-            latest_plan = self.update(actions=action_list)
+
+                action = getattr(attribute, value["action"])
+                attribute_value = value["value"]
+                action_list.append(action(attribute_value))
+
+            record = self.update(actions=action_list)
         except Exception:
             logger.error("Error UPDATING ORGANIZATION record")
             logger.error(traceback.format_exc())
             return False
         else:
-            return latest_plan
+            return record
 
     def to_dict(self):
         return dict(
@@ -187,7 +244,7 @@ class Organizations(Model):
             elementId=self.element_id,
             plan=self.plan,
             owner=self.owner,
-            # api_keys=self.api_keys,
+            api_keys=self.api_key,
             creationTime=self.creation_time,
             lastUpdated=self.last_updated,
             billingTime=self.billing_time,
@@ -317,23 +374,26 @@ class Users(Model):
         else:
             return dict_records
 
-    def update_record(self, **kwargs):
+    def update_record(self, values: list):
         self.validate_table()
         try:
             action_list = list()
-            for attr, value in kwargs.items():
-                action = getattr(self, attr, None)
-                if action is None:
+            for value in values:
+                attribute = self.get_attributes().get(value["attribute"])
+                if attribute is None:
                     continue
-                else:
-                    action.set(value)
-            latest_plan = self.update(actions=action_list)
+
+                action = getattr(attribute, value["action"])
+                attribute_value = value["value"]
+                action_list.append(action(attribute_value))
+
+            record = self.update(actions=action_list)
         except Exception:
             logger.error("Error UPDATING USER record")
             logger.error(traceback.format_exc())
             return False
         else:
-            return latest_plan
+            return record
 
     def to_dict(self):
         return dict(
@@ -446,23 +506,26 @@ class UserOrganizationRelation(Model):
         else:
             return dict_records
 
-    def update_record(self, **kwargs):
+    def update_record(self, values: list):
         self.validate_table()
         try:
             action_list = list()
-            for attr, value in kwargs.items():
-                action = getattr(self, attr, None)
-                if action is None:
+            for value in values:
+                attribute = self.get_attributes().get(value["attribute"])
+                if attribute is None:
                     continue
-                else:
-                    action.set(value)
-            latest_plan = self.update(actions=action_list)
+
+                action = getattr(attribute, value["action"])
+                attribute_value = value["value"]
+                action_list.append(action(attribute_value))
+
+            record = self.update(actions=action_list)
         except Exception:
-            logger.error("Error UPDATING USER ORGANIZATION RELATION record")
+            logger.error("Error UPDATING USER/ORGANIZATION record")
             logger.error(traceback.format_exc())
             return False
         else:
-            return latest_plan
+            return record
 
     def to_dict(self):
         return dict(
@@ -584,23 +647,26 @@ class ServiceTokens(Model):
         else:
             return dict_records
 
-    def update_record(self, **kwargs):
+    def update_record(self, values: list):
         self.validate_table()
         try:
             action_list = list()
-            for attr, value in kwargs.items():
-                action = getattr(self, attr, None)
-                if action is None:
+            for value in values:
+                attribute = self.get_attributes().get(value["attribute"])
+                if attribute is None:
                     continue
-                else:
-                    action.set(value)
-            latest_plan = self.update(actions=action_list)
+
+                action = getattr(attribute, value["action"])
+                attribute_value = value["value"]
+                action_list.append(action(attribute_value))
+
+            record = self.update(actions=action_list)
         except Exception:
-            logger.error("Error UPDATING PLAN record")
+            logger.error("Error UPDATING SERVICETOKEN record")
             logger.error(traceback.format_exc())
             return False
         else:
-            return latest_plan
+            return record
 
     def to_dict(self):
         return dict(
@@ -677,9 +743,8 @@ class Roles(Model):
     def delete_record_by_id(cls, id_: str):
         cls.validate_table()
         try:
-            roles = cls.get_record_by_id(id_=id_)
-            for role in roles:
-                role.delete()
+            role = cls.get_record_by_id(id_=id_)
+            role.delete()
         except Exception:
             logger.error("Error DELETING ROLE by id")
             logger.error(traceback.format_exc())
@@ -725,23 +790,26 @@ class Roles(Model):
         else:
             return dict_records
 
-    def update_record(self, **kwargs):
+    def update_record(self, values: list):
         self.validate_table()
         try:
             action_list = list()
-            for attr, value in kwargs.items():
-                action = getattr(self, attr, None)
-                if action is None:
+            for value in values:
+                attribute = self.get_attributes().get(value["attribute"])
+                if attribute is None:
                     continue
-                else:
-                    action.set(value)
-            latest_plan = self.update(actions=action_list)
+
+                action = getattr(attribute, value["action"])
+                attribute_value = value["value"]
+                action_list.append(action(attribute_value))
+
+            record = self.update(actions=action_list)
         except Exception:
-            logger.error("Error UPDATING PLAN record")
+            logger.error("Error UPDATING ROLE record")
             logger.error(traceback.format_exc())
             return False
         else:
-            return latest_plan
+            return record
 
     def to_dict(self):
         return dict(
@@ -813,9 +881,8 @@ class Plans(Model):
     def delete_record_by_id(cls, id_: str):
         cls.validate_table()
         try:
-            plans = cls.get_record_by_id(id_=id_)
-            for plan in plans:
-                plan.delete()
+            plan = cls.get_record_by_id(id_=id_)
+            plan.delete()
         except Exception:
             logger.error("Error DELETING PLAN by id")
             logger.error(traceback.format_exc())
@@ -861,23 +928,26 @@ class Plans(Model):
         else:
             return dict_records
 
-    def update_record(self, **kwargs):
+    def update_record(self, values: list):
         self.validate_table()
         try:
             action_list = list()
-            for attr, value in kwargs.items():
-                action = getattr(self, attr, None)
-                if action is None:
+            for value in values:
+                attribute = self.get_attributes().get(value["attribute"])
+                if attribute is None:
                     continue
-                else:
-                    action.set(value)
-            latest_plan = self.update(actions=action_list)
+
+                action = getattr(attribute, value["action"])
+                attribute_value = value["value"]
+                action_list.append(action(attribute_value))
+
+            record = self.update(actions=action_list)
         except Exception:
             logger.error("Error UPDATING PLAN record")
             logger.error(traceback.format_exc())
             return False
         else:
-            return latest_plan
+            return record
 
     def to_dict(self):
         return dict(

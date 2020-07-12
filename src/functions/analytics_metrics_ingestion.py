@@ -1,7 +1,7 @@
 import json
 import time
 
-from handlers.data_analysis.iot_analytics import IotAnalyticsHandler
+from handlers.analytics.iot_analytics import IotAnalyticsHandler
 from handlers.utils import base_response
 from settings.aws import IOT_ANALYTICS_CHANNEL_0
 from settings.logs import Logger

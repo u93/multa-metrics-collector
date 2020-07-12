@@ -1,7 +1,7 @@
 import traceback
 
-from handlers.users_backend.cognito import CognitoHandler, parse_user_attributes
-from handlers.users_backend.models import Organizations, Plans, Roles, UserOrganizationRelation, Users
+from handlers.backend.cognito import CognitoHandler, parse_user_attributes
+from handlers.backend.models import Organizations, Plans, Roles, UserOrganizationRelation, Users
 from handlers.utils import base_response
 
 from settings.logs import Logger

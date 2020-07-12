@@ -1,6 +1,6 @@
 import traceback
 
-from handlers.users_backend.models import Plans
+from handlers.backend.models import Plans
 from handlers.utils import base_response
 
 from settings.logs import Logger

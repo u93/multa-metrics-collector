@@ -23,10 +23,10 @@ USER_BACKEND_CONFIGS = {
                     "timeout": 10,
                     "environment_vars": {
                         "ENVIRONMENT": "dev",
+                        "REGION": "us-east-1",
                         "USER_POOL_ID": "us-east-1_3y2ZVLaJI",
                         "USER_POOL_APP_CLIENT_ID": "4vg2pa7su7mi4e4buemab7vuvl",
                         "KEYS_URL": "https://cognito-idp.{region}.amazonaws.com/{user_pool_id}/.well-known/jwks.json",
-                        "REGION": "us-east-1",
                         "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                         "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                         "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
@@ -127,6 +127,7 @@ USER_BACKEND_CONFIGS = {
                         "timeout": 10,
                         "environment_vars": {
                             "ENVIRONMENT": "dev",
+                            "REGION": "us-east-1",
                             "USER_POOL_ID": "us-east-1_3y2ZVLaJI",
                             "DEFAULT_SIGNUP_PLAN": "3367dfd3-4909-4117-a434-379b66e71d18##Basic",
                             "DEFAULT_SIGNUP_ROLE": "5e249517-92cc-4c26-a8fb-233a21b33b4c##admin",

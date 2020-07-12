@@ -1,5 +1,8 @@
 import os
 
+ENVIRONMENT = os.environ.get("ENVIRONMENT", "dev")
+REGION = os.environ.get("REGION")
+
 FRONTEND_BASE_DOMAIN = os.environ.get("FRONTEND_BASE_DOMAIN", "https://dev.d14258l1f04l0x.amplifyapp.com/")
 
 USERS_TABLE_NAME = os.environ.get("USERS_TABLE_NAME", "multa_backend_user_organization_mapping_table_dev")
@@ -8,7 +11,15 @@ PLANS_TABLE_NAME = os.environ.get("PLANS_TABLE_NAME", "multa_backend_account_pla
 ROLES_TABLE_NAME = os.environ.get("ROLES_TABLE_NAME", "multa_backend_user_roles_table_dev")
 SERVICE_TOKENS_TABLE_NAME = os.environ.get("SERVICE_TOKENS_TABLE_NAME", "multa_backend_service_tokens_table_dev")
 
+SECRETS = {
+    "SECRET_API_KEY": os.environ.get("SECRET_API_KEY", "MULTA-METRICS-SECRETS/{env}/API-KEY").format(env=ENVIRONMENT)
+}
+
 USER_POOL_ID = os.environ.get("USER_POOL_ID", "us-east-1_3y2ZVLaJI")
+USER_POOL_APP_CLIENT_ID = os.environ.get("USER_POOL_APP_CLIENT_ID")
+KEYS_URL_RAW = os.environ.get("KEYS_URL")
+if KEYS_URL_RAW is not None:
+    KEYS_URL = KEYS_URL_RAW.format(region=REGION, user_pool_id=USER_POOL_ID)
 COGNITO_TRIGGERS = {"POST_CONFIRMATION_CONFIRM_SIGNUP": "PostConfirmation_ConfirmSignUp", "PRE_SIGN_UP": ""}
 
 INVITE_EMAIL_SENDER = os.environ.get("INVITE_EMAIL_SENDER", "eebf1993@gmail.com")

@@ -1,6 +1,6 @@
 import traceback
 
-from handlers.users_backend.models import Roles
+from handlers.backend.models import Roles
 from handlers.utils import base_response
 
 from settings.logs import Logger

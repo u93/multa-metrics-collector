@@ -24,6 +24,7 @@ ANALYTICS_CONFIGS = {
                     "timeout": 10,
                     "environment_vars": {
                         "ENVIRONMENT": "dev",
+                        "REGION": "us-east-1",
                         "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                     },
                     "iam_actions": ["*"],
@@ -55,6 +56,7 @@ ANALYTICS_CONFIGS = {
                     "timeout": 10,
                     "environment_vars": {
                         "ENVIRONMENT": "dev",
+                        "REGION": "us-east-1",
                         "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                         "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                     },
@@ -116,6 +118,7 @@ ANALYTICS_CONFIGS = {
                     "timeout": 10,
                     "environment_vars": {
                         "ENVIRONMENT": "dev",
+                        "REGION": "us-east-1",
                         "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                         "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                     },
@@ -131,6 +134,7 @@ ANALYTICS_CONFIGS = {
                     "timeout": 10,
                     "environment_vars": {
                         "ENVIRONMENT": "dev",
+                        "REGION": "us-east-1",
                         "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                         "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                     },
@@ -146,6 +150,7 @@ ANALYTICS_CONFIGS = {
                     "timeout": 10,
                     "environment_vars": {
                         "ENVIRONMENT": "dev",
+                        "REGION": "us-east-1",
                         "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                         "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                     },
@@ -161,6 +166,7 @@ ANALYTICS_CONFIGS = {
                     "timeout": 10,
                     "environment_vars": {
                         "ENVIRONMENT": "dev",
+                        "REGION": "us-east-1",
                         "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                         "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                     },
@@ -181,12 +187,12 @@ ANALYTICS_CONFIGS = {
                         "timeout": 10,
                         "environment_vars": {
                             "ENVIRONMENT": "dev",
+                            "REGION": "us-east-1",
                             "USER_POOL_ID": "us-east-1_DtWS0jYn8",
                             "USER_POOL_APP_CLIENT_ID": "alii58041k72hht8gb7r2cgn2",
                             "KEYS_URL": "https://cognito-idp.{region}.amazonaws.com/{user_pool_id}/.well-known/jwks.json",
                             "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                             "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
-                            "REGION": "us-east-1",
                         },
                         "iam_actions": ["*"],
                     }
@@ -210,6 +216,7 @@ ANALYTICS_CONFIGS = {
                         "timeout": 10,
                         "environment_vars": {
                             "ENVIRONMENT": "dev",
+                            "REGION": "us-east-1",
                             "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                             "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                         },
@@ -229,6 +236,7 @@ ANALYTICS_CONFIGS = {
                         "timeout": 10,
                         "environment_vars": {
                             "ENVIRONMENT": "dev",
+                            "REGION": "us-east-1",
                             "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
                             "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
                         },
