@@ -21,16 +21,11 @@ def get(event, **kwargs):
         if user_organization_mapping is False:
             logger.error("Error getting current user info...")
             return False
+
         user_organization = user_organization_mapping.to_dict()["organizationId"]
         users, total = Users.get_records(organization_id=user_organization)
         users = Users.records_to_dict(users)
         users = get_users_attributes(users)
-
-        # cognito_handler = CognitoHandler()
-        # users_info = cognito_handler.list_users()
-        # users_list = users_info["Users"]
-        # pagination_token = users_info.get("PaginationToken")
-        # parsed_users = parse_attributes(users_list=users_list)
 
         response_dict["users"] = users
 

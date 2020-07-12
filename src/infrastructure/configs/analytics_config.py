@@ -193,6 +193,10 @@ ANALYTICS_CONFIGS = {
                 },
                 "settings": {
                     "proxy": False,
+                    "custom_domain": {
+                        "domain_name": "multa-metrics-analytics.dev.multa.io",
+                        "certificate_arn": "arn:aws:acm:us-east-1:112646120612:certificate/48e19da0-71a4-417a-9247-c02ef100749c",
+                    },
                     "default_cors_options": {"allow_origins": ["*"], "options_status_code": 200},
                     "default_http_methods": ["ANY"],
                     "default_stage_options": {"metrics_enabled": True, "logging_level": "INFO"},

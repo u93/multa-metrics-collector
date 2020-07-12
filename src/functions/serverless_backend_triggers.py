@@ -19,19 +19,26 @@ def post_confirmation_signup(event):
         organization_name = client_metadata.get("organization_name")
         user_role = client_metadata.get("role", DEFAULT_SIGNUP_ROLE)
 
+        # Validates payload for the trigger activation.
         if organization_name is None:
             logger.error(f"Organization name not found for user - {cognito_username}")
             return False
 
+        # Validates multiple trigger activations.
         user_relation = UserOrganizationRelation.get_record_by_id(id_=cognito_username)
-        if user_relation is False:
-            logger.error(f"User/Organization relation not found for user - {cognito_username}")
+        if user_relation is True:
+            logger.error(f"User/Organization relation found for user - {cognito_username}")
             return False
 
+        # Create Organization resource.
         organization = Organizations.create(name=organization_name, plan=DEFAULT_SIGNUP_PLAN, owner=cognito_username)
+
+        # Create User/Organization mapping resource.
         user_organization_mapping = UserOrganizationRelation.create(
             user_id=cognito_username, organization_id=organization.id
         )
+
+        # Create User Settings resource.
         user_settings = Users.create(organization_id=organization.id, user_id=cognito_username, role=user_role)
     except Exception:
         logger.error(f"Error creating organization/relations/user - {cognito_username}")
@@ -44,6 +51,8 @@ def post_confirmation_signup(event):
 def lambda_handler(event, context):
     logger.info(event)
     cognito_event = event["triggerSource"]
+
+    # Validates Cognito Trigger event.
     if cognito_event == COGNITO_TRIGGERS["POST_CONFIRMATION_CONFIRM_SIGNUP"]:
         post_confirmation_result = post_confirmation_signup(event=event)
         logger.info(post_confirmation_result)
