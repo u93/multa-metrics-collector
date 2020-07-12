@@ -279,18 +279,32 @@ class Users(Model):
             return False
 
     @classmethod
-    def get_records(cls, last_evaluated_key=None):
+    def get_records(cls, organization_id: str, last_evaluated_key=None):
         cls.validate_table()
+        records = list()
         try:
-            users = cls.scan(last_evaluated_key=last_evaluated_key, limit=MAX_SIZE_PER_PAGE)
-            users_last_evaluated_key = users.last_evaluated_key
-            users_total = cls.count()
+            # users = cls.scan(last_evaluated_key=last_evaluated_key, limit=MAX_SIZE_PER_PAGE)
+            kwargs = dict(
+                hash_key=organization_id,
+                range_key_condition=Users.setting_id.startswith(COMPONENT_IDS["USER"]),
+                limit=MAX_SIZE_PER_PAGE,
+            )
+            while True:
+                user_records = cls.query(**kwargs)
+                records.extend(user_records)
+                if user_records.last_evaluated_key is not None:
+                    kwargs["last_evaluated_key"] = last_evaluated_key
+                else:
+                    break
+
+            total_elements = cls.count()
         except Exception:
-            logger.error("Error SCANNING all USERs")
+            logger.error("Error GETTING all USERs")
             logger.error(traceback.format_exc())
+            logger.error(records)
             return False
         else:
-            return users, users_last_evaluated_key, users_total
+            return records, total_elements
 
     @staticmethod
     def records_to_dict(records):
