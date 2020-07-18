@@ -2,7 +2,7 @@ import time
 
 from handlers.analytics.iot_analytics import IotAnalyticsHandler
 from handlers.analytics.iot_things import IotThingsHandler
-from handlers.utils import base_response
+from handlers.middleware.api_validation import base_response
 from settings.aws import IOT_ANALYTICS_CHANNEL_1
 from settings.logs import Logger
 

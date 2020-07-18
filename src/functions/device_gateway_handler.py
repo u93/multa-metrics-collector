@@ -3,7 +3,8 @@ import time
 
 from handlers.devices.aws import ThingHandlers
 from handlers.devices.registration import CvmRegistration
-from handlers.utils import RegisterThingSchema, base_response
+from handlers.middleware.api_validation import base_response
+from handlers.middleware.device_validation import RegisterThingSchema
 from settings.devices import THING_TYPE_NAME_RULE
 from settings.logs import Logger
 

@@ -244,7 +244,7 @@ class Organizations(Model):
             elementId=self.element_id,
             plan=self.plan,
             owner=self.owner,
-            api_keys=self.api_key,
+            apiKey=self.api_key,
             creationTime=self.creation_time,
             lastUpdated=self.last_updated,
             billingTime=self.billing_time,

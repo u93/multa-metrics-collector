@@ -1,7 +1,7 @@
 import traceback
 
 from handlers.backend.models import Roles
-from handlers.utils import base_response
+from handlers.middleware.api_validation import base_response
 
 from settings.logs import Logger
 

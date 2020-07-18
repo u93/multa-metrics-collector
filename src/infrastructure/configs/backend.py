@@ -43,6 +43,12 @@ USER_BACKEND_CONFIGS = {
                     "sort_key": {"name": "setting_id", "type": "string"},
                     "stream": {"enabled": False,},
                     "billing_mode": "pay_per_request",
+                    "global_secondary_indexes": [
+                        {
+                            "index_name": "organization_data_api_key",
+                            "partition_key": "api_key"
+                        }
+                    ],
                 },
                 {
                     "table_name": "user_organization_mapping",

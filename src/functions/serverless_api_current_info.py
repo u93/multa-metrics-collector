@@ -2,7 +2,7 @@ import traceback
 
 from handlers.backend.cognito import CognitoHandler, parse_user_attributes
 from handlers.backend.models import Organizations, Plans, Roles, UserOrganizationRelation, Users
-from handlers.utils import base_response
+from handlers.middleware.api_validation import base_response
 
 from settings.logs import Logger
 
@@ -44,6 +44,7 @@ def get(event, **kwargs):
         user_organization_data["organizationInfo"]["creationTime"] = organization_data.to_dict()["creationTime"]
         user_organization_data["organizationInfo"]["lastUpdated"] = organization_data.to_dict()["lastUpdated"]
         user_organization_data["organizationInfo"]["billingTime"] = organization_data.to_dict()["billingTime"]
+        user_organization_data["organizationInfo"]["deviceApiKey"] = organization_data.to_dict()["apiKey"]
 
     except Exception:
         logger.error("Error GETTING current USER/ORGANIZATION info")

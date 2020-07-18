@@ -3,7 +3,7 @@ import json
 import time
 
 from handlers.analytics.lambda_functions import LambdaHandler
-from handlers.utils import base_response
+from handlers.middleware.api_validation import base_response
 from settings.aws import ANALYTICS_LAMBDA_ROUTING_MAPPING
 from settings.logs import Logger
 

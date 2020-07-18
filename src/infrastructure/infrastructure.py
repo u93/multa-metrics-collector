@@ -13,11 +13,11 @@ from multacdkrecipies import (
 )
 
 from src.infrastructure.configs import (
-    analytics_config,
-    base_configs,
-    device_gateway_config,
-    serverless_rest_api_configs,
-    user_backend_config,
+    analytics,
+    base,
+    device_gateway,
+    rest_api,
+    backend,
 )
 
 
@@ -245,31 +245,31 @@ class AnalyticsStack(core.Stack):
 
 app = core.App()
 
-for environment, configuration in base_configs.BASE_CONFIGS.items():
+for environment, configuration in base.BASE_CONFIGS.items():
     # print(configuration)
     config = dict(environ=environment, config=configuration)
     base_backend = BaseStack(app, id=f"BackendBaseStack-{environment}", config=config)
 
 lambda_authorizers = dict()
-for environment, configuration in user_backend_config.USER_BACKEND_CONFIGS.items():
+for environment, configuration in backend.USER_BACKEND_CONFIGS.items():
     # print(configuration)
     config = dict(environ=environment, config=configuration)
     user_backend = UserBackendStack(app, id=f"UserOrganizationStack-{environment}", config=config)
 
     lambda_authorizers[environment] = user_backend.lambda_authorizer_arn()
 
-for environment, configuration in serverless_rest_api_configs.SERVERLESS_REST_API_CONFIGS.items():
+for environment, configuration in rest_api.SERVERLESS_REST_API_CONFIGS.items():
     configuration["SERVERLESS_REST_API"]["api"]["authorizer_function"]["imported"]["arn"] = lambda_authorizers[
         environment
     ]
     config = dict(environ=environment, config=configuration)
     UserApisBackend(app, id=f"UserApisBackend-{environment}", config=config)
 
-for environment, configuration in device_gateway_config.DEVICE_GATEWAY_CONFIGS.items():
+for environment, configuration in device_gateway.DEVICE_GATEWAY_CONFIGS.items():
     config = dict(environ=environment, config=configuration)
     DeviceGatewayStack(app, id=f"DeviceGateway-{environment}", config=config)
 
-for environment, configuration in analytics_config.ANALYTICS_CONFIGS.items():
+for environment, configuration in analytics.ANALYTICS_CONFIGS.items():
     config = dict(environ=environment, config=configuration)
     AnalyticsStack(app, id=f"AnalyticsStack-{environment}", config=config)
 
