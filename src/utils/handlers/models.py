@@ -186,7 +186,7 @@ class Organizations(Model):
         try:
             kwargs = dict(
                 limit=MAX_SIZE_PER_PAGE,
-                filter_condition=Organizations.setting_id.startswith(COMPONENT_IDS["ORGANIZATION"])
+                filter_condition=Organizations.setting_id.startswith(COMPONENT_IDS["ORGANIZATION"]),
             )
             while True:
                 organization_records = cls.scan(**kwargs)

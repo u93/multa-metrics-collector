@@ -116,9 +116,7 @@ SERVERLESS_REST_API_CONFIGS = {
                                 "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev",
                             },
                             "iam_actions": ["*"],
-                            "keep_warm": {
-                                "enabled": True
-                            }
+                            "keep_warm": {"enabled": True},
                         },
                         "child": {
                             "resource_name": "{user_id}",
@@ -207,7 +205,7 @@ SERVERLESS_REST_API_CONFIGS = {
                     },
                     {
                         "resource_name": "devices",
-                        "methods": ["GET", "POST", "PUT", "DELETE"],
+                        "methods": ["GET"],
                         "handler": {
                             "lambda_name": "serverless_api_devices_handler",
                             "description": "Lambda Function that will handle Device-related requests to Serverless API.",
@@ -229,7 +227,7 @@ SERVERLESS_REST_API_CONFIGS = {
                         },
                         "child": {
                             "resource_name": "{device_id}",
-                            "methods": ["GET", "POST", "PUT", "DELETE"],
+                            "methods": ["GET", "POST", "DELETE"],
                             "handler": {
                                 "lambda_name": "serverless_api_devices_individual_handler",
                                 "description": "Lambda Function that will handle Device-related requests to Serverless API.",

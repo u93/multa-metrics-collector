@@ -25,7 +25,7 @@ from settings.aws import (
 )
 from settings.common import MAX_SIZE_PER_PAGE, SERVICE_TOKEN_BYTES
 from settings.logs import Logger
-from settings.models import COMPONENT_IDS
+from settings.models import COMPONENT_IDS, GLOBAL_INDEXES
 
 logs_handler = Logger()
 logger = logs_handler.logger
@@ -33,12 +33,22 @@ logger = logs_handler.logger
 
 class ApiKeysIndex(GlobalSecondaryIndex):
     class Meta:
-        index_name = "api_keys"
+        index_name = GLOBAL_INDEXES["API_KEYS_INDEX"]
         read_capacity_units = 2
         write_capacity_units = 1
         projection = AllProjection()
 
     api_key = UnicodeAttribute(hash_key=True, null=False)
+
+
+class ElementIdIndex(GlobalSecondaryIndex):
+    class Meta:
+        index_name = GLOBAL_INDEXES["ELEMENT_ID_INDEX"]
+        read_capacity_units = 2
+        write_capacity_units = 1
+        projection = AllProjection()
+
+    element_id = UnicodeAttribute(hash_key=True, null=False)
 
 
 class Organizations(Model):
@@ -47,6 +57,7 @@ class Organizations(Model):
 
     id = UnicodeAttribute(hash_key=True, null=False)
     setting_id = UnicodeAttribute(range_key=True, null=False)
+    element_id_index = ElementIdIndex()
     element_id = UnicodeAttribute(null=False)
     name = UnicodeAttribute(null=False)
     plan = UnicodeAttribute(null=False)
@@ -134,6 +145,38 @@ class Organizations(Model):
             return True
 
     @classmethod
+    def get_record_by_api_key(cls, id_):
+        cls.validate_table()
+        try:
+            records = cls.api_key_index.query(hash_key=id_, limit=1)
+            for record in records:
+                return record
+
+            logger.info(f"No API KEY found by id - {id_}")
+            return False
+
+        except Exception:
+            logger.error("Error QUERYING individual API KEYS")
+            logger.error(traceback.format_exc())
+            return False
+
+    @classmethod
+    def get_record_by_element_id(cls, id_):
+        cls.validate_table()
+        try:
+            records = cls.element_id_index.query(hash_key=id_, limit=1)
+            for record in records:
+                return record
+
+            logger.info(f"No API KEY found by id - {id_}")
+            return False
+
+        except Exception:
+            logger.error("Error QUERYING individual API KEYS")
+            logger.error(traceback.format_exc())
+            return False
+
+    @classmethod
     def get_record_by_id(cls, id_: str):
         cls.validate_table()
         try:
@@ -186,7 +229,7 @@ class Organizations(Model):
         try:
             kwargs = dict(
                 limit=MAX_SIZE_PER_PAGE,
-                filter_condition=Organizations.setting_id.startswith(COMPONENT_IDS["ORGANIZATION"])
+                filter_condition=Organizations.setting_id.startswith(COMPONENT_IDS["ORGANIZATION"]),
             )
             while True:
                 organization_records = cls.scan(**kwargs)
@@ -248,6 +291,156 @@ class Organizations(Model):
             creationTime=self.creation_time,
             lastUpdated=self.last_updated,
             billingTime=self.billing_time,
+        )
+
+    @classmethod
+    def validate_table(cls):
+        if not cls.exists():
+            logger.error(f"Table {ORGANIZATIONS_TABLE_NAME} does not exists!")
+            raise Exception
+
+
+class Devices(Model):
+    class Meta:
+        table_name = ORGANIZATIONS_TABLE_NAME
+
+    id = UnicodeAttribute(hash_key=True, null=False)
+    setting_id = UnicodeAttribute(range_key=True, null=False)
+    element_id = UnicodeAttribute(null=False)
+    data = MapAttribute(default_for_new=dict())
+    is_valid = BooleanAttribute(null=False, default_for_new=True)
+    creation_time = NumberAttribute(null=False, default_for_new=round(time.time()))
+
+    @classmethod
+    def create(cls, device_name: str, organization_id: str, is_valid=True):
+        """
+        Can be used to create as well to update (if record ID is passed).
+        :param device_name: AWS IoT Device name.
+        :param organization_id: Element ID in DynamoDB.
+        :param is_valid: If user account is Valid or not.
+        :return: Class Instance
+        """
+        cls.validate_table()
+        try:
+            user = cls(
+                id=organization_id,
+                setting_id=f"{COMPONENT_IDS['DEVICE']}##{device_name}",
+                element_id=f"{device_name}",
+                is_valid=is_valid,
+                creation_time=round(time.time()),
+            )
+            user.save()
+        except Exception:
+            logger.error("Error SAVING new DEVICE")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return user
+
+    def delete_record(self):
+        try:
+            self.delete()
+        except Exception:
+            logger.error("Error DELETING DEVICE")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return True
+
+    @classmethod
+    def delete_record_by_id(cls, organization_id: str, device_name: str):
+        cls.validate_table()
+        try:
+            user = cls.get_record_by_id(organization_id=organization_id, device_name=device_name)
+            user.delete()
+        except Exception:
+            logger.error("Error DELETING DEVICE by id")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return True
+
+    @classmethod
+    def get_record_by_id(cls, organization_id: str, device_name: str):
+        cls.validate_table()
+        try:
+            records = cls.query(
+                hash_key=organization_id, range_key_condition=Devices.element_id.contains(device_name), limit=1
+            )
+            for record in records:
+                return record
+        except Exception:
+            logger.error("Error QUERYING individual DEVICES")
+            logger.error(traceback.format_exc())
+            return False
+
+    @classmethod
+    def get_records(cls, organization_id: str, last_evaluated_key=None):
+        cls.validate_table()
+        result_records = list()
+        try:
+            kwargs = dict(
+                hash_key=organization_id,
+                range_key_condition=Users.setting_id.startswith(COMPONENT_IDS["DEVICE"]),
+                limit=MAX_SIZE_PER_PAGE,
+            )
+            while True:
+                records = cls.query(**kwargs)
+                result_records.extend(records)
+                if records.last_evaluated_key is not None:
+                    kwargs["last_evaluated_key"] = last_evaluated_key
+                else:
+                    break
+
+            total_elements = cls.count()
+        except Exception:
+            logger.error("Error GETTING all DEVICEs")
+            logger.error(traceback.format_exc())
+            logger.error(result_records)
+            return False
+        else:
+            return result_records, total_elements
+
+    @staticmethod
+    def records_to_dict(records):
+        try:
+            dict_records = [record.to_dict() for record in records]
+        except Exception:
+            logger.error("Error PARSING TO DICT all DEVICEs")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return dict_records
+
+    def update_record(self, values: list):
+        self.validate_table()
+        try:
+            action_list = list()
+            for value in values:
+                attribute = self.get_attributes().get(value["attribute"])
+                if attribute is None:
+                    continue
+
+                action = getattr(attribute, value["action"])
+                attribute_value = value["value"]
+                action_list.append(action(attribute_value))
+
+            record = self.update(actions=action_list)
+        except Exception:
+            logger.error("Error UPDATING USER record")
+            logger.error(traceback.format_exc())
+            return False
+        else:
+            return record
+
+    def to_dict(self):
+        return dict(
+            id=self.element_id,
+            organizationId=self.id,
+            settingId=self.setting_id,
+            data=self.data.as_dict(),
+            isValid=self.is_valid,
+            creationTime=self.creation_time,
         )
 
     @classmethod

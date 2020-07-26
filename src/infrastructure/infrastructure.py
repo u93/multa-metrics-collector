@@ -162,6 +162,7 @@ class DeviceGatewayStack(core.Stack):
         )
         layer_arn = self._device_gateway_api_lambdalayer.lambda_layer.layer_version_arn
 
+        config["config"]["APIGATEWAY_CONFIGURATION"]["api"]["authorizer_function"]["origin"]["layers"].append(layer_arn)
         for function in config["config"]["APIGATEWAY_CONFIGURATION"]["api"]["resource_trees"]:
             function["handler"]["layers"].append(layer_arn)
 

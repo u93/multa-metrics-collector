@@ -23,9 +23,7 @@ class SecretsHandler(Sts):
 
     def get_secret_value(self, secret_name: str):
         try:
-            response = self.secrets_client.get_secret_value(
-                SecretId=secret_name,
-            )
+            response = self.secrets_client.get_secret_value(SecretId=secret_name,)
         except Exception:
             logger.error(f"Error getting secret - {secret_name}")
             logger.error(traceback.format_exc())

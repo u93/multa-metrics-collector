@@ -10,13 +10,12 @@ logger = logs_handler.get_logger()
 
 
 class CvmRegistration:
-    def __init__(self, thing_data: dict, thing_name=None, policy_name=None):
+    def __init__(self, thing_data: dict, policy_name=None):
         self.thing_handler = ThingHandlers()
-        logger.info(f"APP_CONFIG_PATH ---> {APP_CONFIG_PATH}")
         self.configuration_handler = ConfigurationHandler(path=APP_CONFIG_PATH)
         self.configuration_data = self.configuration_handler.get_config()
         self.thing_data = thing_data
-        self.thing_name = thing_data["thingName"]
+        self.thing_name = thing_data["thing_name"]
         if policy_name is None:
             self.policy = self.configuration_data["POLICY_NAMES"]
         else:
@@ -27,15 +26,15 @@ class CvmRegistration:
         try:
             thing_data = self.thing_handler.describe_thing_(thing_name=self.thing_name)
         except ThingNotExists:
-            logger.info("Thing does not exist, proceding to registration!")
+            logger.info("Thing does not exist, proceeding to registration!")
             try:
                 policy_arn = self.thing_handler.get_preconfigured_policy(policy_name=self.policy)
                 certificate_data, certificate_arn = self.thing_handler.provision_thing()
                 self.thing_handler.attach_policy_(policy_name=self.policy, certificate_arn=certificate_arn)
                 self.thing_handler.create_thing_(
                     thing_name=self.thing_name,
-                    thing_type=self.thing_data["thingTypeName"],
-                    thing_attributes=self.thing_data.get("thingAttributes", dict(attributes={})),
+                    thing_type=self.thing_data["thing_type_name"],
+                    thing_attributes=self.thing_data["thing_attributes"],
                 )
                 self.thing_handler.attach_thing_principal_(thing_name=self.thing_name, certificate_arn=certificate_arn)
                 root_ca = self.thing_handler.get_root_ca(

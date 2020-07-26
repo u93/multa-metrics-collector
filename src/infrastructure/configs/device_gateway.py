@@ -10,7 +10,7 @@ DEVICE_GATEWAY_CONFIGS = {
             "name": "device_gateway_parameters",
             "description": "Parameters used by Multa Device Gateway and other applications",
             "string_value": {
-                "POLICY_NAMES": "multa_backend_multaCvmPermissionsV01_dev",
+                "POLICY_NAMES": "multa_backend_policy_dev",
                 "AWS_ROOT_CA": {
                     "PREFERRED": "https://www.amazontrust.com/repository/AmazonRootCA1.pem",
                     "BACKUP": "https://www.amazontrust.com/repository/AmazonRootCA3.pem",
@@ -33,7 +33,7 @@ DEVICE_GATEWAY_CONFIGS = {
                         "timeout": 10,
                         "environment_vars": {
                             "LOG_LEVEL": "INFO",
-                            "APP_CONFIG_PATH": "/multa-cvm/dev/cvm-config-parameters",
+                            "APP_CONFIG_PATH": "/multa_backend/dev/device_gateway_parameters",
                         },
                         "iam_actions": ["*"],
                     }
@@ -57,8 +57,8 @@ DEVICE_GATEWAY_CONFIGS = {
                         "timeout": 10,
                         "environment_vars": {
                             "LOG_LEVEL": "INFO",
-                            "APP_CONFIG_PATH": "/multa_backend/dev/cvm-config-parameters",
-                            "THING_TYPE_NAME_RULE": "Cvm",
+                            "APP_CONFIG_PATH": "/multa_backend/dev/device_gateway_parameters",
+                            "THING_TYPE_NAME_RULE": "Multa",
                         },
                         "iam_actions": ["*"],
                     },

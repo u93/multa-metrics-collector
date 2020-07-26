@@ -51,7 +51,22 @@ IOT_ANALYTICS_CHANNEL_1 = os.environ.get("IOT_ANALYTICS_CHANNEL_1")
 IOT_ANALYTICS_DATASTORE_0 = os.environ.get("IOT_ANALYTICS_DATASTORE_0")
 IOT_ANALYTICS_DATASTORE_1 = os.environ.get("IOT_ANALYTICS_DATASTORE_1")
 
-IOT_ANALYTICS_HOT_PATH_KEYS = {}
+IOT_ANALYTICS_HOT_PATH_KEYS = {
+    "cpu_dynamic_insights_percent": None,
+    "cpu_dynamic_insights_status": None,
+    "disk_dynamic_current": None,
+    "disk_dynamic_total": None,
+    "disk_dynamic_percent": None,
+    "disk_dynamic_insights_status": None,
+    "ram_insights_current": None,
+    "ram_insights_total": None,
+    "ram_insights_percent": None,
+    "ram_insights_status": None,
+    "temperature_insights_percent": None,
+    "temperature_insights_status": None,
+    "boot_time_insights_days_since_boot": None,
+    "boot_time_insights_status": None,
+}
 
 IOT_ANALYTICS_COLD_PATH_KEYS = {
     "ram_memory_total": None,
