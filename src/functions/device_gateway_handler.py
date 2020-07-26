@@ -1,7 +1,7 @@
 import time
 
 from handlers.backend.models import Devices
-from handlers.devices.aws import ThingHandlers
+from handlers.devices.iot_things_manager import ThingHandlers
 from handlers.devices.registration import CvmRegistration
 from handlers.middleware.api_validation import ApiGwEventParser, base_response
 from handlers.middleware.device_validation import RegisterThingSchema
@@ -30,7 +30,7 @@ def lambda_handler(event, context):
         thing_type = thing_handler.get_thing_type(partial_name=THING_TYPE_NAME_RULE)
         if thing_type is False:
             return base_response(status_code=500, dict_body={"message": "Unable to register thing", "failureCode": "2"})
-        thing_name = request_body["thingName"]
+        thing_name = f"{organization_id}---{request_body['thingName']}"
         thing_attributes = dict(
             attributes=dict(
                 version=request_body["version"], organization_id=organization_id, creation_timestamp=str(round(time.time())),

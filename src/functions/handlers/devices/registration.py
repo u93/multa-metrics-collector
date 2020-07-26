@@ -1,6 +1,6 @@
 import traceback
 
-from .aws import ThingHandlers, ConfigurationHandler
+from .iot_things_manager import ThingHandlers, ConfigurationHandler
 from .exceptions import ThingNotExists
 from settings.devices import APP_CONFIG_PATH
 from settings.logs import Logger

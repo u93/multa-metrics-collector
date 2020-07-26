@@ -1,5 +1,7 @@
 import traceback
 
+from handlers.analytics.iot_analytics import get_pretty_hot_path_metrics_enrich
+from handlers.analytics.iot_things_analytics import IotThingsHandler
 from handlers.backend.models import UserOrganizationRelation, Devices
 from handlers.middleware.api_validation import base_response, ApiGwEventParser
 
@@ -24,6 +26,12 @@ def get(event, **kwargs):
         user_organization = user_organization_mapping.to_dict()["organizationId"]
         devices, total = Devices.get_records(organization_id=user_organization)
         devices = Devices.records_to_dict(devices)
+
+        device_analytics_handler = IotThingsHandler()
+        devices = device_analytics_handler.get_things_shadow_enrich(thing_list=devices)
+        devices = get_pretty_hot_path_metrics_enrich(thing_list=devices)
+
+        logger.info(devices)
 
         response_dict["devices"] = devices
 
