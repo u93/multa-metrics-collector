@@ -20,6 +20,3 @@ def get_object_from_bucket(bucket_key: str, environment: str, bucket_value: str)
         logger.error(f"Error getting {environment}/{bucket_value} object")
         logger.error(traceback.format_exc())
         return False
-
-
-

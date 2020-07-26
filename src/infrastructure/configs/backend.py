@@ -44,10 +44,8 @@ USER_BACKEND_CONFIGS = {
                     "stream": {"enabled": False,},
                     "billing_mode": "pay_per_request",
                     "global_secondary_indexes": [
-                        {
-                            "index_name": "organization_data_api_key",
-                            "partition_key": "api_key"
-                        }
+                        {"index_name": "organization_data_api_key", "partition_key": "api_key"},
+                        {"index_name": "organization_data_element_id", "partition_key": "element_id"}
                     ],
                 },
                 {

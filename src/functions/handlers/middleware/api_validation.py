@@ -16,6 +16,7 @@ class ApiGwEventParser:
         self.token = self._event["headers"]["Authorization"].split()[1]
         self.path = self._event["path"]
         self.method = self._event["httpMethod"]
+        self.authorizer_context = self._event["requestContext"]["authorizer"]
         self.body = json.loads(self._event.get("body", "{}")) if self._event["body"] is not None else None
 
 

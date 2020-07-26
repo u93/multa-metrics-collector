@@ -5,6 +5,7 @@ import traceback
 import uuid
 
 import boto3
+import humanize
 
 from handlers.common import Sts
 from settings.aws import (
@@ -19,8 +20,58 @@ logs_handler = Logger()
 logger = logs_handler.get_logger()
 
 
+def get_pretty_hot_path_metrics(data: dict):
+    current_data = data["current"]["state"]["reported"]
+
+    IOT_ANALYTICS_HOT_PATH_KEYS["serial_number"] = data["serial_number"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["timestamp"] = round(time.time())
+    IOT_ANALYTICS_HOT_PATH_KEYS["ram_insights_current"] = current_data["ram_info"]["insights"]["current"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["ram_insights_total"] = current_data["ram_info"]["insights"]["total"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["ram_insights_percent"] = current_data["ram_info"]["insights"]["percent"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["ram_insights_status"] = current_data["ram_info"]["insights"]["status"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["cpu_dynamic_insights_percent"] = current_data["cpu_dynamic_info"]["insights"][
+        "percent"
+    ]
+    IOT_ANALYTICS_HOT_PATH_KEYS["cpu_dynamic_insights_status"] = current_data["cpu_dynamic_info"]["insights"]["high"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["disk_dynamic_current"] = current_data["disk_dynamic_info"]["current"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["disk_dynamic_total"] = current_data["disk_dynamic_info"]["total"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["disk_dynamic_percent"] = current_data["disk_dynamic_info"]["percent"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["disk_dynamic_insights_status"] = current_data["disk_dynamic_info"]["high"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["temperature_insights_percent"] = current_data["temp_info"]["insights"]["percent"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["temperature_insights_status"] = current_data["temp_info"]["insights"]["high"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["boot_time_insights_days_since_boot"] = current_data["boot_time_info"]["insights"][
+        "days_since_boot"
+    ]
+    IOT_ANALYTICS_HOT_PATH_KEYS["boot_time_insights_status"] = current_data["boot_time_info"]["insights"]["high"]
+
+    return IOT_ANALYTICS_HOT_PATH_KEYS
+
+
 def get_hot_path_metrics(data: dict):
     current_data = data["current"]["state"]["reported"]
+
+    IOT_ANALYTICS_HOT_PATH_KEYS["serial_number"] = data["serial_number"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["timestamp"] = round(time.time())
+    IOT_ANALYTICS_HOT_PATH_KEYS["ram_insights_current"] = current_data["ram_info"]["insights"]["current"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["ram_insights_total"] = current_data["ram_info"]["insights"]["total"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["ram_insights_percent"] = current_data["ram_info"]["insights"]["percent"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["ram_insights_status"] = current_data["ram_info"]["insights"]["status"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["cpu_dynamic_insights_percent"] = current_data["cpu_dynamic_info"]["insights"][
+        "percent"
+    ]
+    IOT_ANALYTICS_HOT_PATH_KEYS["cpu_dynamic_insights_status"] = current_data["cpu_dynamic_info"]["insights"]["high"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["disk_dynamic_current"] = current_data["disk_dynamic_info"]["current"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["disk_dynamic_total"] = current_data["disk_dynamic_info"]["total"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["disk_dynamic_percent"] = current_data["disk_dynamic_info"]["percent"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["disk_dynamic_insights_status"] = current_data["disk_dynamic_info"]["high"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["temperature_insights_percent"] = current_data["temp_info"]["insights"]["percent"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["temperature_insights_status"] = current_data["temp_info"]["insights"]["high"]
+    IOT_ANALYTICS_HOT_PATH_KEYS["boot_time_insights_days_since_boot"] = current_data["boot_time_info"]["insights"][
+        "days_since_boot"
+    ]
+    IOT_ANALYTICS_HOT_PATH_KEYS["boot_time_insights_status"] = current_data["boot_time_info"]["insights"]["high"]
+
+    return IOT_ANALYTICS_HOT_PATH_KEYS
 
 
 def get_connectivity_metrics(data: dict, timestamp):
@@ -105,6 +156,13 @@ class IotAnalyticsHandler(Sts):
     def __init__(self):
         Sts.__init__(self)
         self.iotanalytics_client = boto3.client("iotanalytics")
+
+    @staticmethod
+    def format_metrics(data: dict) -> dict:
+        for key, value in data.items():
+            data[key] = humanize.naturalsize(value, gnu=True)
+
+        return data
 
     @staticmethod
     def parse_analysis(analysis_type="SYNC"):

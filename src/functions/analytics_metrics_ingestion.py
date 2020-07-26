@@ -1,7 +1,8 @@
 import json
-import time
+import traceback
 
 from handlers.analytics.iot_analytics import IotAnalyticsHandler
+from handlers.backend.models import Devices
 from handlers.middleware.api_validation import base_response
 from settings.aws import IOT_ANALYTICS_CHANNEL_0
 from settings.logs import Logger
@@ -11,21 +12,30 @@ logger = logs_handler.get_logger()
 
 
 def lambda_handler(event, context):
-    activation_time = round(time.time())
-    logger.info(activation_time)
-    logger.info(event)
+    try:
+        analytics_handler = IotAnalyticsHandler()
+        event_list = list()
+        realtime_data_list = list()
+        for record in event["Records"]:
+            event_list.append(json.loads(record["body"]))
 
-    analytics_handler = IotAnalyticsHandler()
-    event_list = list()
-    for record in event["Records"]:
-        event_list.append(json.loads(record["body"]))
+        put_message_status = analytics_handler.batch_put_message(
+            channel_name=IOT_ANALYTICS_CHANNEL_0, messages=event_list, analysis="cold_path_metrics"
+        )
 
-    put_message_status = analytics_handler.batch_put_message(
-        channel_name=IOT_ANALYTICS_CHANNEL_0, messages=event_list, analysis="cold_path_metrics"
-    )
-    logger.info(put_message_status)
+        for record in event["Records"]:
+            realtime_data_list.append(analytics_handler.format_metrics(record["body"]))
 
-    return base_response(status_code=200)
+        for data_point in realtime_data_list:
+            logger.info(data_point)
+            device
+
+        return base_response(status_code=200)
+
+    except Exception:
+        logger.error("Error processing IoT Shadow data")
+        logger.error(traceback.format_exc())
+        return base_response(status_code=500)
 
 
 if __name__ == "__main__":

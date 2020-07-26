@@ -26,7 +26,6 @@ def patch():
     pass
 
 
-
 def delete():
     pass
 
