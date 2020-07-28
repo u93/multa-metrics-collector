@@ -82,7 +82,7 @@ DEVICE_GATEWAY_CONFIGS = {
                             },
                             "iam_actions": ["*"],
                         },
-                    }
+                    },
                 ],
             }
         },

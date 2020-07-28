@@ -11,10 +11,6 @@ logger = logs_handler.get_logger()
 
 
 def lambda_handler(event, context):
-    activation_time = round(time.time())
-    logger.info(activation_time)
-    logger.info(event)
-
     things_handler = IotThingsHandler()
     results = things_handler.get_things_connectivity()
 
@@ -22,7 +18,6 @@ def lambda_handler(event, context):
     put_message_status = analytics_handler.batch_put_message(
         channel_name=IOT_ANALYTICS_CHANNEL_1, messages=results, analysis="connectivity"
     )
-    logger.info(put_message_status)
 
     return base_response(status_code=200)
 

@@ -29,6 +29,40 @@ class IotThingsHandler(Sts):
         self.iotthings_client = boto3.client("iot")
         self.iotthings_data_client = boto3.client("iot-data")
 
+    def get_thing_connectivity(self, thing_name: str):
+        try:
+            kwargs = dict(queryString=f"thingName:{thing_name} AND connectivity.connected:*")
+            response = self.iotthings_client.search_index(**kwargs)
+            filtered_response = filter_thing_index_search(
+                parameters=["thingTypeName", "attributes", "thingId"], results=response["things"]
+            )
+            return response["things"][0]["connectivity"]
+        except Exception:
+            logger.error("Error querying AWS Iot Thing connectivity message...")
+            logger.error(traceback.format_exc())
+            return False
+
+    def get_thing_connectivity_bulk(self, things: list):
+        search_results = list()
+        query = "connectivity.connected:* AND "
+        for thing in things:
+            query = query + f"thingName:{thing}"
+            if thing != things[-1]:
+                query = query + " OR "
+        kwargs = dict(queryString=query, maxResults=200)
+        logger.info(kwargs)
+        while True:
+            response = self.iotthings_client.search_index(**kwargs)
+            filtered_response = filter_thing_index_search(
+                parameters=["thingTypeName", "attributes", "thingId", "shadow"], results=response["things"]
+            )
+            search_results.extend(filtered_response)
+            if "nextToken" in response:
+                kwargs["nextToken"] = response["nextToken"]
+            else:
+                break
+        return search_results
+
     def get_things_connectivity(self):
         try:
             search_results = list()
@@ -91,5 +125,8 @@ class IotThingsHandler(Sts):
 
 if __name__ == "__main__":
     iot_handler = IotThingsHandler()
-    test_results = iot_handler.get_things_shadow(thing_name="multa-agent-compose-i386-1-3")
-    print(iot_handler.shadow_streaming_body_parser(test_results))
+    # test_results = iot_handler.get_things_shadow(thing_name="multa-agent-compose-i386-1-3")
+    # print(iot_handler.shadow_streaming_body_parser(test_results))
+
+    result = iot_handler.get_thing_connectivity_bulk(things=["multa-agent-compose-i386-1-2", "multa-agent-compose-i386-1-3"])
+    print(result)
