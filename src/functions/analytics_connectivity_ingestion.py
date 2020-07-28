@@ -1,7 +1,7 @@
 import time
 
 from handlers.analytics.iot_analytics import IotAnalyticsHandler
-from handlers.analytics.iot_things import IotThingsHandler
+from handlers.analytics.iot_things_analytics import IotThingsHandler
 from handlers.middleware.api_validation import base_response
 from settings.aws import IOT_ANALYTICS_CHANNEL_1
 from settings.logs import Logger
@@ -11,10 +11,6 @@ logger = logs_handler.get_logger()
 
 
 def lambda_handler(event, context):
-    activation_time = round(time.time())
-    logger.info(activation_time)
-    logger.info(event)
-
     things_handler = IotThingsHandler()
     results = things_handler.get_things_connectivity()
 
@@ -22,7 +18,6 @@ def lambda_handler(event, context):
     put_message_status = analytics_handler.batch_put_message(
         channel_name=IOT_ANALYTICS_CHANNEL_1, messages=results, analysis="connectivity"
     )
-    logger.info(put_message_status)
 
     return base_response(status_code=200)
 

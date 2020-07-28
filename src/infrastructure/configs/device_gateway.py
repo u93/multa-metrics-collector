@@ -78,11 +78,11 @@ DEVICE_GATEWAY_CONFIGS = {
                             "environment_vars": {
                                 "LOG_LEVEL": "INFO",
                                 "APP_CONFIG_PATH": "/multa_backend/dev/device_gateway_parameters",
-                                "THING_TYPE_NAME_RULE": "Cvm",
+                                "THING_TYPE_NAME_RULE": "Multa",
                             },
                             "iam_actions": ["*"],
                         },
-                    }
+                    },
                 ],
             }
         },

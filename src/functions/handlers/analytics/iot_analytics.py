@@ -20,10 +20,26 @@ logs_handler = Logger()
 logger = logs_handler.get_logger()
 
 
-def get_pretty_hot_path_metrics(data: dict):
-    current_data = data["current"]["state"]["reported"]
+def get_pretty_hot_path_metrics_enrich(thing_list: list):
+    results = list()
+    for thing in thing_list:
+        thing["hotData"] = get_pretty_hot_path_metrics(thing_name=thing["id"], data=thing["hotData"]["state"]["reported"])
+        results.append(thing)
 
-    IOT_ANALYTICS_HOT_PATH_KEYS["serial_number"] = data["serial_number"]
+    return results
+
+
+def get_pretty_hot_path_metrics(data: dict, thing_name=None, use_raw_shadow=False):
+    if use_raw_shadow is True:
+        current_data = data["current"]["state"]["reported"]
+    else:
+        current_data = data
+
+    if thing_name is None:
+        IOT_ANALYTICS_HOT_PATH_KEYS["serial_number"] = data["serial_number"]
+    else:
+        IOT_ANALYTICS_HOT_PATH_KEYS["serial_number"] = thing_name
+
     IOT_ANALYTICS_HOT_PATH_KEYS["timestamp"] = round(time.time())
     IOT_ANALYTICS_HOT_PATH_KEYS["ram_insights_current"] = current_data["ram_info"]["insights"]["current"]
     IOT_ANALYTICS_HOT_PATH_KEYS["ram_insights_total"] = current_data["ram_info"]["insights"]["total"]

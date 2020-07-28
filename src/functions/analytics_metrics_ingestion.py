@@ -28,7 +28,6 @@ def lambda_handler(event, context):
 
         for data_point in realtime_data_list:
             logger.info(data_point)
-            device
 
         return base_response(status_code=200)
 

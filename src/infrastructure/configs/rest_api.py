@@ -249,6 +249,29 @@ SERVERLESS_REST_API_CONFIGS = {
                             },
                         },
                     },
+                    {
+                        "resource_name": "device-attributes",
+                        "methods": ["GET"],
+                        "handler": {
+                            "lambda_name": "serverless_api_devices_attributes",
+                            "description": "Lambda Function that will handle Device Queryable attributes to Serverless API.",
+                            "code_path": "./src/functions/",
+                            "runtime": "PYTHON_3_7",
+                            "handler": "serverless_api_devices_attributes.lambda_handler",
+                            "layers": [],
+                            "timeout": 10,
+                            "environment_vars": {
+                                "ENVIRONMENT": "dev",
+                                "REGION": "us-east-1",
+                                "USER_POOL_ID": "us-east-1_3y2ZVLaJI",
+                                "USERS_TABLE_NAME": "multa_backend_user_organization_mapping_table_dev",
+                                "ORGANIZATIONS_TABLE_NAME": "multa_backend_organization_data_table_dev",
+                                "PLANS_TABLE_NAME": "multa_backend_account_plans_table_dev",
+                                "ROLES_TABLE_NAME": "multa_backend_user_roles_table_dev",
+                            },
+                            "iam_actions": ["*"],
+                        }
+                    },
                 ],
             }
         },
