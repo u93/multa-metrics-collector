@@ -12,7 +12,6 @@ logger = logs_handler.get_logger()
 
 
 def get(event, **kwargs):
-    response_dict = dict(users=list(), paginationToken=None)
     try:
         request_parser = ApiGwEventParser(event=event)
         request_parser.parse()
@@ -36,8 +35,6 @@ def get(event, **kwargs):
             for device_info in devices:
                 if device_info["id"] == device["thingName"]:
                     device_info["connectionStatus"] = device["connectivity"]["connected"]
-
-        response_dict["devices"] = devices
 
     except Exception:
         logger.error("Error GETTING current DEVICES info")

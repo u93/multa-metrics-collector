@@ -1,10 +1,8 @@
 import traceback
 
-from handlers.analytics.iot_analytics import get_pretty_hot_path_metrics_enrich
-from handlers.analytics.iot_things_analytics import IotThingsHandler
-from handlers.backend.models import UserOrganizationRelation, Devices
-from handlers.middleware.api_validation import base_response, ApiGwEventParser
+from handlers.middleware.api_validation import base_response
 
+from settings.aws import IOT_ANALYTICS_HOT_PATH_SEARCH_MAPPING
 from settings.logs import Logger
 
 logs_handler = Logger()
@@ -12,55 +10,16 @@ logger = logs_handler.get_logger()
 
 
 def get(event, **kwargs):
-    response_dict = dict(users=list(), paginationToken=None)
-    try:
-        request_parser = ApiGwEventParser(event=event)
-        request_parser.parse()
+    attributes = list()
+    for parameter in IOT_ANALYTICS_HOT_PATH_SEARCH_MAPPING:
+        try:
+            del parameter["value"]
+            attributes.append(parameter)
+        except Exception:
+            logger.error(f"Error parsing specific ADVANCED SEARCH ATTRIBUTE - {parameter}")
+            logger.error(traceback.format_exc())
 
-        user_id = request_parser.user_id
-        user_organization_mapping = UserOrganizationRelation.get_record_by_id(id_=user_id)
-        if user_organization_mapping is False:
-            logger.error("Error getting current user info...")
-            return False
-
-        user_organization = user_organization_mapping.to_dict()["organizationId"]
-        devices, total = Devices.get_records(organization_id=user_organization)
-        devices = Devices.records_to_dict(devices)
-
-        device_analytics_handler = IotThingsHandler()
-        devices = device_analytics_handler.get_things_shadow_enrich(thing_list=devices)
-        devices = get_pretty_hot_path_metrics_enrich(thing_list=devices)
-
-        device_connectivity = device_analytics_handler.get_thing_connectivity_bulk(things=[device["id"] for device in devices])
-        for device in device_connectivity:
-            for device_info in devices:
-                if device_info["id"] == device["thingName"]:
-                    device_info["connectionStatus"] = device["connectivity"]["connected"]
-
-        response_dict["devices"] = devices
-
-    except Exception:
-        logger.error("Error GETTING current DEVICES info")
-        logger.error(traceback.format_exc())
-        return False
-
-    return devices
-
-
-def post():
-    pass
-
-
-def put():
-    pass
-
-
-def patch():
-    pass
-
-
-def delete():
-    pass
+    return attributes
 
 
 def lambda_handler(event, context):

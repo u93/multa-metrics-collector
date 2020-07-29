@@ -51,7 +51,56 @@ IOT_ANALYTICS_CHANNEL_1 = os.environ.get("IOT_ANALYTICS_CHANNEL_1")
 IOT_ANALYTICS_DATASTORE_0 = os.environ.get("IOT_ANALYTICS_DATASTORE_0")
 IOT_ANALYTICS_DATASTORE_1 = os.environ.get("IOT_ANALYTICS_DATASTORE_1")
 
+IOT_ANALYTICS_HOT_PATH_SEARCH_MAPPING = [
+    {
+        "parameter": "serial_number",
+        "pretty_name": "Serial Number",
+        "value": "thingName:{serial_number}*"
+    },
+    {
+        "parameter": "ram_insights_percent",
+        "pretty_name": "Current percent RAM usage",
+        "value": "shadow.reported.ram_info.insights.percent"
+    },
+    {
+        "parameter": "ram_insights_status",
+        "pretty_name": "Current RAM threshold",
+        "value": "shadow.reported.ram_info.insights.status"
+    },
+    {
+        "parameter": "disk_dynamic_percent",
+        "pretty_name": "Current percent Disk usage",
+        "value": "shadow.reported.disk_dynamic_info.percent"
+    },
+    {
+        "parameter": "disk_dynamic_insights_status",
+        "pretty_name": "Current Disk threshold",
+        "value": "shadow.reported.disk_dynamic_info.high"
+    },
+    {
+        "parameter": "cpu_dynamic_insights_percent",
+        "pretty_name": "Current percent CPU usage",
+        "value": "shadow.reported.cpu_dynamic_info.insights.percent"
+    },
+    {
+        "parameter": "cpu_dynamic_insights_status",
+        "pretty_name": "Current CPU threshold",
+        "value": "shadow.reported.cpu_dynamic_info.insights.high"
+    },
+    {
+        "parameter": "temperature_insights_percent",
+        "pretty_name": "Current percent Temperature usage",
+        "value": "shadow.reported.temp_info.insights.percent"
+    },
+    {
+        "parameter": "temperature_insights_status",
+        "pretty_name": "Current Temperature threshold",
+        "value": "shadow.reported.temp_info.insights.status"
+    }
+]
 IOT_ANALYTICS_HOT_PATH_KEYS = {
+    "serial_number": None,
+    "timestamp": None,
     "cpu_dynamic_insights_percent": None,
     "cpu_dynamic_insights_status": None,
     "disk_dynamic_current": None,
