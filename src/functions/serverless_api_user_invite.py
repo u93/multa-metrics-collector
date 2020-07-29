@@ -2,7 +2,7 @@ import traceback
 
 from handlers.backend.ses import generate_invite_url, SesHandler
 from handlers.backend.cognito import CognitoHandler
-from handlers.backend.models import UserOrganizationRelation
+from handlers.backend.models import Organizations, UserOrganizationRelation
 from handlers.middleware.api_validation import base_response, ApiGwEventParser
 
 from settings.logs import Logger
@@ -20,23 +20,28 @@ def post(event, **kwargs):
         request_parser = ApiGwEventParser(event=event)
         request_parser.parse()
 
-        logger.info(request_parser.user_id)
         user_organization_mapping = UserOrganizationRelation.get_record_by_id(id_=request_parser.user_id)
         if user_organization_mapping is False:
             logger.error("Error getting current user info...")
             return False
+
         user_organization = user_organization_mapping.to_dict()["organizationId"]
+        user_organization_name = Organizations.get_record_by_id(
+            id_=user_organization_mapping.to_dict()["organizationId"]
+        ).to_dict()["name"]
 
         cognito_user_email = request_parser.body["emailAddress"]
+        user_role = request_parser.body["roleId"]
         cognito_handler = CognitoHandler()
         is_email_valid = cognito_handler.check_user(email_address=cognito_user_email)
         if is_email_valid is not False:
             return False
 
-        invite_url = generate_invite_url(email_address=cognito_user_email, organization_id=user_organization)
+        invite_url = generate_invite_url(
+            email_address=cognito_user_email, organization_name=user_organization_name, role=user_role
+        )
         ses_handler = SesHandler()
         email_sent = ses_handler.send_invite_email(invite_url=invite_url, recipient=cognito_user_email)
-        logger.info(email_sent)
         if email_sent is False:
             return False
 

@@ -1007,7 +1007,7 @@ class Roles(Model):
     def to_dict(self):
         return dict(
             id=self.id,
-            name=self.id.split("##")[1],
+            name=self.id.split("##")[1].capitalize(),
             index=self.index,
             logic_groups=[logic_group.as_dict() for logic_group in self.logic_groups],
             lastUpdated=self.last_updated,

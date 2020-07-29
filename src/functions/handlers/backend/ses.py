@@ -16,8 +16,8 @@ logs_handler = Logger()
 logger = logs_handler.get_logger()
 
 
-def generate_invite_url(email_address: str, organization_id: str):
-    invite_link = f"{FRONTEND_BASE_DOMAIN}/invite?emailAddress={email_address}&organizationId={organization_id}"
+def generate_invite_url(email_address: str, organization_name: str, role: str) -> str:
+    invite_link = f"{FRONTEND_BASE_DOMAIN}/invite?emailAddress={email_address}&organizationId={organization_name}&role={role}"
     return invite_link
 
 
@@ -55,7 +55,7 @@ class SesHandler(Sts):
 if __name__ == "__main__":
     recipient = "eugeniobreijo2016@gmail.com"
     org_id = "123"
-    invite_url_ = generate_invite_url(email_address=recipient, organization_id=org_id)
+    invite_url_ = generate_invite_url(email_address=recipient, organization_name=org_id)
     cognito_handler = SesHandler()
     result = cognito_handler.send_invite_email(recipient=recipient, invite_url=invite_url_)
     logger.info(result)

@@ -3,7 +3,7 @@ import os
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "dev")
 REGION = os.environ.get("REGION")
 
-FRONTEND_BASE_DOMAIN = os.environ.get("FRONTEND_BASE_DOMAIN", "https://dev.d14258l1f04l0x.amplifyapp.com/")
+FRONTEND_BASE_DOMAIN = os.environ.get("FRONTEND_BASE_DOMAIN", "https://dev.d66l26mrt2n64.amplifyapp.com/")
 
 USERS_TABLE_NAME = os.environ.get("USERS_TABLE_NAME", "multa_backend_user_organization_mapping_table_dev")
 ORGANIZATIONS_TABLE_NAME = os.environ.get("ORGANIZATIONS_TABLE_NAME", "multa_backend_organization_data_table_dev")
