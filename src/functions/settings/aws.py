@@ -98,6 +98,26 @@ IOT_ANALYTICS_HOT_PATH_SEARCH_MAPPING = [
         "value": "shadow.reported.temp_info.insights.status"
     }
 ]
+
+IOT_ANALYTICS_HOT_PATH_SEARCH_COMPARISONS = [
+    {
+        "parameter": "equal",
+        "pretty_name": "Equal",
+        "value": ":"
+    },
+    {
+        "parameter": "higher_than",
+        "pretty_name": "Higher Than",
+        "value": ">"
+    },
+    {
+        "parameter": "less_than",
+        "pretty_name": "Less Than",
+        "value": "<"
+    }
+]
+
+
 IOT_ANALYTICS_HOT_PATH_KEYS = {
     "serial_number": None,
     "timestamp": None,

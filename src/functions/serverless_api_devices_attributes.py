@@ -2,7 +2,7 @@ import traceback
 
 from handlers.middleware.api_validation import base_response
 
-from settings.aws import IOT_ANALYTICS_HOT_PATH_SEARCH_MAPPING
+from settings.aws import IOT_ANALYTICS_HOT_PATH_SEARCH_MAPPING, IOT_ANALYTICS_HOT_PATH_SEARCH_COMPARISONS
 from settings.logs import Logger
 
 logs_handler = Logger()
@@ -10,16 +10,25 @@ logger = logs_handler.get_logger()
 
 
 def get(event, **kwargs):
-    attributes = list()
+    mapping_attributes = list()
     for parameter in IOT_ANALYTICS_HOT_PATH_SEARCH_MAPPING:
         try:
             del parameter["value"]
-            attributes.append(parameter)
+            mapping_attributes.append(parameter)
         except Exception:
             logger.error(f"Error parsing specific ADVANCED SEARCH ATTRIBUTE - {parameter}")
             logger.error(traceback.format_exc())
 
-    return attributes
+    comparison_attributes = list()
+    for parameter in IOT_ANALYTICS_HOT_PATH_SEARCH_COMPARISONS:
+        try:
+            del parameter["value"]
+            comparison_attributes.append(parameter)
+        except Exception:
+            logger.error(f"Error parsing specific ADVANCED SEARCH COMPARISON - {parameter}")
+            logger.error(traceback.format_exc())
+
+    return dict(mappingAttributes=mapping_attributes, comparisonAttributes=comparison_attributes)
 
 
 def lambda_handler(event, context):
@@ -31,7 +40,7 @@ def lambda_handler(event, context):
         if current_info is False:
             return base_response(status_code=500, dict_body=dict(results=False, error="Error getting users info..."))
 
-        return base_response(status_code=200, dict_body=dict(results=dict(data=current_info)))
+        return base_response(status_code=200, dict_body=dict(results=current_info))
 
     else:
         return base_response(status_code=400, dict_body=dict(results=False, error="Unhandled method..."))

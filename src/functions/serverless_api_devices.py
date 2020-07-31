@@ -44,8 +44,38 @@ def get(event, **kwargs):
     return devices
 
 
-def post():
-    pass
+def post(event, **kwargs):
+    try:
+        request_parser = ApiGwEventParser(event=event)
+        request_parser.parse()
+
+        user_id = request_parser.user_id
+        user_organization_mapping = UserOrganizationRelation.get_record_by_id(id_=user_id)
+        if user_organization_mapping is False:
+            logger.error("Error getting current user info...")
+            return False
+
+        user_organization = user_organization_mapping.to_dict()["organizationId"]
+        devices, total = Devices.get_records(organization_id=user_organization)
+        devices = Devices.records_to_dict(devices)
+
+        device_analytics_handler = IotThingsHandler()
+        devices = device_analytics_handler.get_things_shadow_enrich(thing_list=devices)
+        devices = get_pretty_hot_path_metrics_enrich(thing_list=devices)
+
+        device_connectivity = device_analytics_handler.get_thing_connectivity_bulk(
+            things=[device["id"] for device in devices])
+        for device in device_connectivity:
+            for device_info in devices:
+                if device_info["id"] == device["thingName"]:
+                    device_info["connectionStatus"] = device["connectivity"]["connected"]
+
+    except Exception:
+        logger.error("Error GETTING current DEVICES info")
+        logger.error(traceback.format_exc())
+        return False
+
+    return devices
 
 
 def put():

@@ -205,7 +205,7 @@ SERVERLESS_REST_API_CONFIGS = {
                     },
                     {
                         "resource_name": "devices",
-                        "methods": ["GET"],
+                        "methods": ["GET", "POST"],
                         "handler": {
                             "lambda_name": "serverless_api_devices_handler",
                             "description": "Lambda Function that will handle Device-related requests to Serverless API.",
