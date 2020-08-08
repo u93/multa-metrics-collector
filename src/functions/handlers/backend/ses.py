@@ -16,8 +16,8 @@ logs_handler = Logger()
 logger = logs_handler.get_logger()
 
 
-def generate_invite_url(email_address: str, organization_name: str, role: str) -> str:
-    invite_link = f"{FRONTEND_BASE_DOMAIN}/invite?emailAddress={email_address}&organizationId={organization_name}&role={role}"
+def generate_invite_url(email_address: str, organization_name: str, organization_id: str, role: str) -> str:
+    invite_link = f"{FRONTEND_BASE_DOMAIN}/invite?emailAddress={email_address}&organizationId={organization_id}&organizationName={organization_name}&role={role}"
     return invite_link
 
 

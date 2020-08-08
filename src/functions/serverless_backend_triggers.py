@@ -1,7 +1,7 @@
 import traceback
 
 from handlers.backend.models import Organizations, Users, UserOrganizationRelation
-from settings.aws import COGNITO_TRIGGERS
+from settings.aws import COGNITO_TRIGGERS, COGNITO_CONFIRMSIGNUP_USES
 from settings.logs import Logger
 from settings.models import DEFAULT_SIGNUP_PLAN, DEFAULT_SIGNUP_ROLE
 
@@ -9,7 +9,7 @@ logs_handler = Logger()
 logger = logs_handler.get_logger()
 
 
-def post_confirmation_signup(event):
+def post_confirmation_signup(event: dict):
     cognito_username = event["userName"]
     try:
         user_attributes = event["request"]["userAttributes"]
@@ -48,13 +48,24 @@ def post_confirmation_signup(event):
         return True
 
 
+def post_confirmation_user_invite(event: dict):
+    pass
+
+
 def lambda_handler(event, context):
     logger.info(event)
     cognito_event = event["triggerSource"]
 
     # Validates Cognito Trigger event.
     if cognito_event == COGNITO_TRIGGERS["POST_CONFIRMATION_CONFIRM_SIGNUP"]:
-        post_confirmation_result = post_confirmation_signup(event=event)
+        if event["request"]["clientMetadata"].get("usage") == COGNITO_CONFIRMSIGNUP_USES["signUp"]:
+            post_confirmation_result = post_confirmation_signup(event=event)
+        elif event["request"]["clientMetadata"].get("usage") == COGNITO_CONFIRMSIGNUP_USES["userInvite"]:
+            post_confirmation_result = post_confirmation_user_invite(event=event)
+        else:
+            logger.error("Post Confirmation event not recognized...")
+            raise Exception
+
         logger.info(post_confirmation_result)
 
     return event
@@ -81,7 +92,7 @@ if __name__ == "__main__":
                 "family_name": "Breijo",
                 "email": "eebf1993@gmail.com",
             },
-            "clientMetadata": {"organization_name": "Eugenio's Dev Org"},
+            "clientMetadata": {"organization_name": "Eugenio's Dev Org", "usage": "signUp"},
         },
         "response": {},
     }
