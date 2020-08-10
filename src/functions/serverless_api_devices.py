@@ -19,7 +19,7 @@ def get(event, **kwargs):
         user_id = request_parser.user_id
         user_organization_mapping = UserOrganizationRelation.get_record_by_id(id_=user_id)
         if user_organization_mapping is False:
-            logger.error("Error getting current user info...")
+            logger.error("Error getting current devices info...")
             return False
 
         user_organization = user_organization_mapping.to_dict()["organizationId"]
@@ -27,10 +27,14 @@ def get(event, **kwargs):
         devices = Devices.records_to_dict(devices)
 
         device_analytics_handler = IotThingsHandler()
-        devices = device_analytics_handler.get_things_shadow_enrich(thing_list=devices)
+        devices = device_analytics_handler.get_things_shadow_enrich(
+            organization_id=user_organization, thing_list=devices
+        )
         devices = get_pretty_hot_path_metrics_enrich(thing_list=devices)
 
-        device_connectivity = device_analytics_handler.get_thing_connectivity_bulk(things=[device["id"] for device in devices])
+        device_connectivity = device_analytics_handler.get_thing_connectivity_bulk(
+            organization_id=user_organization, things=[device["id"] for device in devices]
+        )
         for device in device_connectivity:
             for device_info in devices:
                 if device_info["id"] == device["thingName"]:
@@ -52,7 +56,7 @@ def post(event, **kwargs):
         user_id = request_parser.user_id
         user_organization_mapping = UserOrganizationRelation.get_record_by_id(id_=user_id)
         if user_organization_mapping is False:
-            logger.error("Error getting current user info...")
+            logger.error("Error getting current devices info...")
             return False
 
         user_organization = user_organization_mapping.to_dict()["organizationId"]
@@ -60,11 +64,24 @@ def post(event, **kwargs):
         devices = Devices.records_to_dict(devices)
 
         device_analytics_handler = IotThingsHandler()
-        devices = device_analytics_handler.get_things_shadow_enrich(thing_list=devices)
+        devices = device_analytics_handler.get_things_shadow_enrich(
+            organization_id=user_organization, thing_list=devices
+        )
         devices = get_pretty_hot_path_metrics_enrich(thing_list=devices)
 
+        request_body = request_parser.body
+        filtered_devices = device_analytics_handler.advanced_index_query(
+            organization_id=user_organization, parameters=request_body
+        )
+        if filtered_devices is False:
+            logger.error("Error excuting advanced queries for current devices info...")
+            return False
+
+        filtered_devices = [device["thingName"] for device in filtered_devices]
+        devices = [device for device in devices if f"{user_organization}---{device['id']}" in filtered_devices]
         device_connectivity = device_analytics_handler.get_thing_connectivity_bulk(
-            things=[device["id"] for device in devices])
+            organization_id=user_organization, things=[device["id"] for device in devices]
+        )
         for device in device_connectivity:
             for device_info in devices:
                 if device_info["id"] == device["thingName"]:
@@ -96,20 +113,22 @@ def lambda_handler(event, context):
     http_method = event["httpMethod"]
     if http_method == "GET":
         current_info = get(event=event)
-        if current_info is False:
-            return base_response(status_code=500, dict_body=dict(results=False, error="Error getting users info..."))
-
-        return base_response(status_code=200, dict_body=dict(results=dict(data=current_info)))
-
+    elif http_method == "POST":
+        current_info = post(event=event)
     else:
         return base_response(status_code=400, dict_body=dict(results=False, error="Unhandled method..."))
+
+    if current_info is False:
+        return base_response(status_code=500, dict_body=dict(results=False, error="Error getting device info..."))
+
+    return base_response(status_code=200, dict_body=dict(results=dict(data=current_info)))
 
 
 if __name__ == "__main__":
     lambda_event = {
         "resource": "/users",
         "path": "/users/",
-        "httpMethod": "GET",
+        "httpMethod": "POST",
         "headers": {
             "Accept": "application/json, text/plain, */*",
             "Accept-Encoding": "gzip, deflate, br",
@@ -205,8 +224,8 @@ if __name__ == "__main__":
             "domainName": "2qoob0tpqb.execute-api.us-east-1.amazonaws.com",
             "apiId": "2qoob0tpqb",
         },
-        "body": None,
+        "body": '[\n    {\n        "parameter": "serial_number",\n        "operator": ":",\n        "value": "agent-1-2"\n    },\n    {\n        "parameter": "ram_insights_status",\n        "operator": ":",\n        "value": false\n    }\n]',
         "isBase64Encoded": False,
     }
     response = lambda_handler(event=lambda_event, context={})
-    logger.info(response)
+    print(response)

@@ -19,16 +19,7 @@ def get(event, **kwargs):
             logger.error(f"Error parsing specific ADVANCED SEARCH ATTRIBUTE - {parameter}")
             logger.error(traceback.format_exc())
 
-    comparison_attributes = list()
-    for parameter in IOT_ANALYTICS_HOT_PATH_SEARCH_COMPARISONS:
-        try:
-            del parameter["value"]
-            comparison_attributes.append(parameter)
-        except Exception:
-            logger.error(f"Error parsing specific ADVANCED SEARCH COMPARISON - {parameter}")
-            logger.error(traceback.format_exc())
-
-    return dict(mappingAttributes=mapping_attributes, comparisonAttributes=comparison_attributes)
+    return dict(mappingAttributes=mapping_attributes)
 
 
 def lambda_handler(event, context):

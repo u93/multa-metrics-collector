@@ -59,47 +59,150 @@ IOT_ANALYTICS_HOT_PATH_SEARCH_MAPPING = [
     {
         "parameter": "serial_number",
         "pretty_name": "Serial Number",
-        "value": "thingName:{serial_number}*"
+        "value": "thingName{operator}{value}*",
+        "operators": [
+            {
+                "parameter": "equal",
+                "pretty_name": "Equal",
+                "value": ":"
+            }
+        ]
     },
     {
         "parameter": "ram_insights_percent",
         "pretty_name": "Current percent RAM usage",
-        "value": "shadow.reported.ram_info.insights.percent"
+        "value": "shadow.reported.ram_info.insights.percent{operator}{value}",
+        "operators": [
+            {
+                "parameter": "equal",
+                "pretty_name": "Equal",
+                "value": ":"
+            },
+            {
+                "parameter": "higher_than",
+                "pretty_name": "Higher Than",
+                "value": ">"
+            },
+            {
+                "parameter": "less_than",
+                "pretty_name": "Less Than",
+                "value": "<"
+            }
+        ]
     },
     {
         "parameter": "ram_insights_status",
         "pretty_name": "Current RAM threshold",
-        "value": "shadow.reported.ram_info.insights.status"
+        "value": "shadow.reported.ram_info.insights.status{operator}{value}",
+        "operators": [
+            {
+                "parameter": "equal",
+                "pretty_name": "Equal",
+                "value": ":"
+            }
+        ]
     },
     {
         "parameter": "disk_dynamic_percent",
         "pretty_name": "Current percent Disk usage",
-        "value": "shadow.reported.disk_dynamic_info.percent"
+        "value": "shadow.reported.disk_dynamic_info.percent{operator}{value}",
+        "operators": [
+            {
+                "parameter": "equal",
+                "pretty_name": "Equal",
+                "value": ":"
+            },
+            {
+                "parameter": "higher_than",
+                "pretty_name": "Higher Than",
+                "value": ">"
+            },
+            {
+                "parameter": "less_than",
+                "pretty_name": "Less Than",
+                "value": "<"
+            }
+        ]
     },
     {
         "parameter": "disk_dynamic_insights_status",
         "pretty_name": "Current Disk threshold",
-        "value": "shadow.reported.disk_dynamic_info.high"
+        "value": "shadow.reported.disk_dynamic_info.high{operator}{value}",
+        "operators": [
+            {
+                "parameter": "equal",
+                "pretty_name": "Equal",
+                "value": ":"
+            }
+        ]
     },
     {
         "parameter": "cpu_dynamic_insights_percent",
         "pretty_name": "Current percent CPU usage",
-        "value": "shadow.reported.cpu_dynamic_info.insights.percent"
+        "value": "shadow.reported.cpu_dynamic_info.insights.percent{operator}{value}",
+        "operators": [
+            {
+                "parameter": "equal",
+                "pretty_name": "Equal",
+                "value": ":"
+            },
+            {
+                "parameter": "higher_than",
+                "pretty_name": "Higher Than",
+                "value": ">"
+            },
+            {
+                "parameter": "less_than",
+                "pretty_name": "Less Than",
+                "value": "<"
+            }
+        ]
     },
     {
         "parameter": "cpu_dynamic_insights_status",
         "pretty_name": "Current CPU threshold",
-        "value": "shadow.reported.cpu_dynamic_info.insights.high"
+        "value": "shadow.reported.cpu_dynamic_info.insights.high{operator}{value}",
+        "operators": [
+            {
+                "parameter": "equal",
+                "pretty_name": "Equal",
+                "value": ":"
+            }
+        ]
     },
     {
         "parameter": "temperature_insights_percent",
         "pretty_name": "Current percent Temperature usage",
-        "value": "shadow.reported.temp_info.insights.percent"
+        "value": "shadow.reported.temp_info.insights.percent{operator}{value}",
+        "operators": [
+            {
+                "parameter": "equal",
+                "pretty_name": "Equal",
+                "value": ":"
+            },
+            {
+                "parameter": "higher_than",
+                "pretty_name": "Higher Than",
+                "value": ">"
+            },
+            {
+                "parameter": "less_than",
+                "pretty_name": "Less Than",
+                "value": "<"
+            }
+        ]
     },
     {
         "parameter": "temperature_insights_status",
         "pretty_name": "Current Temperature threshold",
-        "value": "shadow.reported.temp_info.insights.status"
+        "value": "shadow.reported.temp_info.insights.status{operator}{value}",
+        "operators": [
+            {
+                "parameter": "equal",
+                "pretty_name": "Equal",
+                "value": ":"
+            }
+        ]
     }
 ]
 

@@ -62,8 +62,13 @@ def lambda_handler(event, context):
                 status_code=500, dict_body={"message": "Unable to register thing in database", "failureCode": registration_code}
             )
 
+        device_data = dict(
+            organizationId=organization_id
+        )
+
         response = {
             "certificates": registration_response["certificate_data"],
+            "deviceData": device_data,
             "rootCA": registration_response["root_ca"],
             "failureCode": registration_code,
         }
