@@ -30,6 +30,7 @@ def lambda_handler(event, context):
         thing_type = thing_handler.get_thing_type(partial_name=THING_TYPE_NAME_RULE)
         if thing_type is False:
             return base_response(status_code=500, dict_body={"message": "Unable to register thing", "failureCode": "2"})
+
         thing_name = f"{organization_id}---{request_body['thingName']}"
         thing_attributes = dict(
             attributes=dict(
@@ -55,14 +56,19 @@ def lambda_handler(event, context):
                 status_code=500, dict_body={"message": "Unable to register thing", "failureCode": registration_code}
             )
 
-        registered_device = Devices.create(device_name=thing_name, organization_id=organization_id)
+        registered_device = Devices.create(device_name=request_body['thingName'], organization_id=organization_id)
         if registered_device is False:
             return base_response(
                 status_code=500, dict_body={"message": "Unable to register thing in database", "failureCode": registration_code}
             )
 
+        device_data = dict(
+            organizationId=organization_id
+        )
+
         response = {
             "certificates": registration_response["certificate_data"],
+            "deviceData": device_data,
             "rootCA": registration_response["root_ca"],
             "failureCode": registration_code,
         }

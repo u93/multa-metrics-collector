@@ -38,7 +38,10 @@ def post(event, **kwargs):
             return False
 
         invite_url = generate_invite_url(
-            email_address=cognito_user_email, organization_name=user_organization_name, role=user_role
+            email_address=cognito_user_email,
+            organization_id=user_organization,
+            organization_name=user_organization_name,
+            role=user_role
         )
         ses_handler = SesHandler()
         email_sent = ses_handler.send_invite_email(invite_url=invite_url, recipient=cognito_user_email)
