@@ -63,7 +63,7 @@ contextlib2==0.5.5
 cycler==0.10.0
 docutils==0.15.2
 idna==2.9
-Jinja2==2.10.3
+Jinja2==2.11.3
 jmespath==0.9.4
 jose==1.0.0
 jsii==0.21.2
